@@ -1,4 +1,4 @@
-import { ProductsService } from "@/lib/products-service";
+/*import { ProductsService } from "@/lib/products-service";
 import { NextResponse } from "next/server";
 
 interface GetParams {
@@ -73,3 +73,4 @@ export async function GET(request: Request) {
     );
   }
 }
+*/
