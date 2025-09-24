@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
-export const runtime = "edge";
+import { list } from "@vercel/blob";
+export const runtime = "nodejs";
 export async function GET() {
-  const url = process.env.CATALOG_BLOB_URL;
-  if (!url) return NextResponse.json([], { headers: { "cache-control": "no-store" }});
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) return NextResponse.json([], { headers: { "cache-control": "no-store" }});
-  const items = await res.json();
-  return NextResponse.json(items, { headers: { "cache-control": "no-store" }});
+  try {
+    const { blobs } = await list({ prefix: "printify/catalog.json", limit: 1 });
+    if (!blobs.length) return NextResponse.json([]);
+    const res = await fetch(blobs[0].url, { cache: "no-store" });
+    const items = await res.json();
+    return NextResponse.json(items, { headers: { "cache-control": "no-store" } });
+  } catch (e) {
+    console.error("CATALOG_ERROR", e?.message);
+    return NextResponse.json([], { headers: { "cache-control": "no-store" } });
+  }
 }
