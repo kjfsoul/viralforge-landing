@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 import { parse } from "csv-parse/sync";
+
+// DEBUG: Log file content analysis
+console.log("=== DEBUG: File Content Analysis ===");
+console.log("File location:", __filename);
+console.log("First few lines of file:");
+console.log("Line 1:", import.meta.url || "import.meta.url not available");
+console.log("Current timestamp:", new Date().toISOString());
+console.log("Node environment:", process.env.NODE_ENV);
+console.log("=== END DEBUG ===");
 
 export const runtime = "nodejs";
 
@@ -11,38 +21,46 @@ type Row = {
   tags: string;
 };
 
+const AUTH = process.env.IMPORTER_BEARER || "";
+
 export async function POST(req: NextRequest) {
-  // simple bearer (optional). Set IMPORTER_BEARER in Vercel -> Project -> Settings -> Env
-  const need = process.env.IMPORTER_BEARER;
-  if (need) {
-    const tok = (req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
-    if (tok !== need) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (AUTH) {
+    const hdr = req.headers.get("authorization") || "";
+    if (hdr !== `Bearer ${AUTH}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+  if (!(req.headers.get("content-type") || "").includes("text/csv")) {
+    return NextResponse.json(
+      { error: "Content-Type must be text/csv" },
+      { status: 400 }
+    );
   }
 
-  if (!(req.headers.get("content-type")||"").includes("text/csv")) {
-    return NextResponse.json({ error: "Content-Type must be text/csv" }, { status: 400 });
-  }
+  const csvText = await req.text();
+  const rows = parse(csvText, { columns: true, skip_empty_lines: true }) as Row[];
 
-  const csv = await req.text();
-  const rows = parse(csv, { columns: true, skip_empty_lines: true }) as Row[];
-
-  // keep only postable rows and map to a simple item shape
-  const items = rows.filter(r => (r.storefront_product_url||"").trim() && Number(r.variant_count) > 0)
+  const items = rows
+    .filter(r => (r.storefront_product_url || "").trim() && Number(r.variant_count) > 0)
     .map(r => ({
       key: `${r.shop_id}:${r.product_id}`,
       shop_id: r.shop_id,
       shop_title: r.shop_title,
       subdomain: r.subdomain,
       product_id: r.product_id,
-      title: r.product_title,
+      product_title: r.product_title,
       buy_url: r.storefront_product_url,
       image: r.first_image_url,
-      price_min: (Number(r.min_price_cents)||0)/100,
-      price_max: (Number(r.max_price_cents)||0)/100,
-      tags: (r.tags||"").split("|").filter(Boolean),
-      touched_at: new Date().toISOString()
+      price_min: (Number(r.min_price_cents) || 0) / 100,
+      price_max: (Number(r.max_price_cents) || 0) / 100,
+      tags: (r.tags || "").split("|").filter(Boolean),
+      touched_at: new Date().toISOString(),
     }));
 
-  // return parsed items; your runner can POST these to /api/catalog next
-  return NextResponse.json({ imported: items.length, items });
+  const { url } = await put("printify/catalog.json", JSON.stringify(items), {
+    contentType: "application/json",
+    access: "public",
+  });
+
+  return NextResponse.json({ count: items.length, blob_url: url });
 }
