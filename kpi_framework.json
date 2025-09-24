@@ -1,0 +1,528 @@
+{
+  "viralforge_kpi_framework": {
+    "overview": {
+      "system_name": "VIRALFORGE KPI Dashboard",
+      "description": "Comprehensive KPI tracking framework for autonomous POD campaign system",
+      "measurement_frequency": "Real-time, Daily, Weekly, Monthly",
+      "target_budget": "$200 initial campaign budget",
+      "success_criteria": "Positive ROAS within 30 days, sustainable profit margins >25%"
+    },
+    "primary_kpis": {
+      "financial_metrics": {
+        "revenue": {
+          "metric_name": "Total Revenue",
+          "description": "Gross revenue from all product sales",
+          "calculation": "SUM(order_value) for time period",
+          "target": "$500+ monthly per brand",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.revenue",
+          "visualization": "Line chart with trend analysis",
+          "alerts": [
+            {
+              "condition": "Daily revenue < $10 for 7 consecutive days",
+              "action": "Trigger campaign optimization workflow"
+            }
+          ]
+        },
+        "roas": {
+          "metric_name": "Return on Ad Spend",
+          "description": "Revenue generated per dollar spent on advertising",
+          "calculation": "revenue / ad_spend",
+          "target": ">3.0 (300% return)",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.roas",
+          "visualization": "Gauge chart with color coding (Red <2, Yellow 2-3, Green >3)",
+          "alerts": [
+            {
+              "condition": "ROAS < 1.5 for 3 consecutive days",
+              "action": "Pause ad campaigns and trigger optimization"
+            }
+          ]
+        },
+        "gross_profit_margin": {
+          "metric_name": "Gross Profit Margin",
+          "description": "Percentage of revenue remaining after COGS",
+          "calculation": "(revenue - cogs) / revenue * 100",
+          "target": ">30%",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.gross_profit / daily_analytics.revenue * 100",
+          "visualization": "Bar chart by product category",
+          "alerts": [
+            {
+              "condition": "Margin < 20% for any product",
+              "action": "Review pricing strategy"
+            }
+          ]
+        },
+        "net_profit": {
+          "metric_name": "Net Profit",
+          "description": "Total profit after all expenses",
+          "calculation": "revenue - total_costs",
+          "target": ">$150 monthly per brand",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.net_profit",
+          "visualization": "Waterfall chart showing revenue breakdown",
+          "alerts": [
+            {
+              "condition": "Net profit negative for 5 consecutive days",
+              "action": "Emergency campaign review"
+            }
+          ]
+        }
+      },
+      "customer_metrics": {
+        "cac": {
+          "metric_name": "Customer Acquisition Cost",
+          "description": "Cost to acquire one new customer",
+          "calculation": "ad_spend / new_customers",
+          "target": "<$15 per customer",
+          "frequency": "Daily",
+          "data_source": "Calculated from daily_analytics and customer_analytics",
+          "visualization": "Line chart with CAC:CLV ratio",
+          "alerts": [
+            {
+              "condition": "CAC > $25",
+              "action": "Optimize targeting and ad creative"
+            }
+          ]
+        },
+        "clv": {
+          "metric_name": "Customer Lifetime Value",
+          "description": "Predicted total value of customer relationship",
+          "calculation": "average_order_value * purchase_frequency * customer_lifespan",
+          "target": ">$75 per customer",
+          "frequency": "Weekly",
+          "data_source": "customer_analytics.customer_lifetime_value",
+          "visualization": "Histogram distribution of CLV segments",
+          "alerts": [
+            {
+              "condition": "Average CLV declining >10% month-over-month",
+              "action": "Implement retention campaigns"
+            }
+          ]
+        },
+        "repeat_purchase_rate": {
+          "metric_name": "Repeat Purchase Rate",
+          "description": "Percentage of customers making multiple purchases",
+          "calculation": "customers_with_multiple_orders / total_customers * 100",
+          "target": ">15%",
+          "frequency": "Weekly",
+          "data_source": "customer_analytics table analysis",
+          "visualization": "Donut chart with customer segments",
+          "alerts": [
+            {
+              "condition": "Repeat rate < 10%",
+              "action": "Launch email retention campaign"
+            }
+          ]
+        },
+        "average_order_value": {
+          "metric_name": "Average Order Value",
+          "description": "Average amount spent per order",
+          "calculation": "total_revenue / total_orders",
+          "target": ">$35",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.average_order_value",
+          "visualization": "Trend line with seasonal adjustments",
+          "alerts": [
+            {
+              "condition": "AOV declining >15% week-over-week",
+              "action": "Implement upselling strategies"
+            }
+          ]
+        }
+      },
+      "operational_metrics": {
+        "conversion_rate": {
+          "metric_name": "Website Conversion Rate",
+          "description": "Percentage of visitors who make a purchase",
+          "calculation": "orders / website_visitors * 100",
+          "target": ">2.5%",
+          "frequency": "Daily",
+          "data_source": "daily_analytics.conversion_rate",
+          "visualization": "Funnel chart showing conversion stages",
+          "alerts": [
+            {
+              "condition": "Conversion rate < 1.5%",
+              "action": "A/B test landing pages"
+            }
+          ]
+        },
+        "product_performance": {
+          "metric_name": "Product Performance Score",
+          "description": "Composite score of product success metrics",
+          "calculation": "(units_sold * 0.4) + (profit_margin * 0.3) + (social_engagement * 0.3)",
+          "target": ">75 points",
+          "frequency": "Weekly",
+          "data_source": "products table with calculated metrics",
+          "visualization": "Heatmap by product and brand",
+          "alerts": [
+            {
+              "condition": "Product score < 40 for 14 days",
+              "action": "Discontinue product or redesign"
+            }
+          ]
+        },
+        "inventory_turnover": {
+          "metric_name": "Inventory Turnover Rate",
+          "description": "How quickly products sell (POD virtual inventory)",
+          "calculation": "units_sold / average_active_products",
+          "target": ">5 per month",
+          "frequency": "Weekly",
+          "data_source": "products and daily_analytics tables",
+          "visualization": "Bar chart by product category",
+          "alerts": [
+            {
+              "condition": "Turnover < 2 for any category",
+              "action": "Review product mix and pricing"
+            }
+          ]
+        }
+      },
+      "marketing_metrics": {
+        "social_engagement_rate": {
+          "metric_name": "Social Media Engagement Rate",
+          "description": "Engagement per social media post",
+          "calculation": "(likes + comments + shares) / impressions * 100",
+          "target": ">3%",
+          "frequency": "Daily",
+          "data_source": "social_posts table",
+          "visualization": "Multi-line chart by platform",
+          "alerts": [
+            {
+              "condition": "Engagement rate < 1% for 5 consecutive posts",
+              "action": "Revise content strategy"
+            }
+          ]
+        },
+        "ugc_generation_rate": {
+          "metric_name": "User Generated Content Rate",
+          "description": "UGC posts per 100 orders",
+          "calculation": "ugc_posts / orders * 100",
+          "target": ">5 UGC posts per 100 orders",
+          "frequency": "Weekly",
+          "data_source": "ugc_tracking table",
+          "visualization": "Scatter plot with trend line",
+          "alerts": [
+            {
+              "condition": "UGC rate < 2%",
+              "action": "Implement UGC incentive program"
+            }
+          ]
+        },
+        "viral_coefficient": {
+          "metric_name": "Viral Coefficient",
+          "description": "Number of new customers generated by existing customers",
+          "calculation": "referred_customers / total_customers",
+          "target": ">0.15",
+          "frequency": "Weekly",
+          "data_source": "customer_analytics with referral tracking",
+          "visualization": "Area chart with viral loops",
+          "alerts": [
+            {
+              "condition": "Viral coefficient < 0.05",
+              "action": "Enhance referral program"
+            }
+          ]
+        },
+        "trend_capture_speed": {
+          "metric_name": "Trend Capture Speed",
+          "description": "Time from trend detection to product launch",
+          "calculation": "AVG(product_created_at - trend_detected_at) in hours",
+          "target": "<24 hours",
+          "frequency": "Per campaign",
+          "data_source": "workflow_executions and products tables",
+          "visualization": "Histogram of response times",
+          "alerts": [
+            {
+              "condition": "Response time > 48 hours",
+              "action": "Optimize automation workflows"
+            }
+          ]
+        }
+      }
+    },
+    "secondary_kpis": {
+      "automation_metrics": {
+        "workflow_success_rate": {
+          "metric_name": "Automation Success Rate",
+          "description": "Percentage of successful workflow executions",
+          "calculation": "successful_executions / total_executions * 100",
+          "target": ">95%",
+          "frequency": "Daily",
+          "data_source": "workflow_executions table",
+          "visualization": "Success rate by workflow type"
+        },
+        "ai_content_approval_rate": {
+          "metric_name": "AI Content Approval Rate",
+          "description": "Percentage of AI-generated content approved for use",
+          "calculation": "approved_content / total_generated_content * 100",
+          "target": ">80%",
+          "frequency": "Weekly",
+          "data_source": "generated_content table",
+          "visualization": "Approval rate by content type"
+        },
+        "system_uptime": {
+          "metric_name": "System Uptime",
+          "description": "Percentage of time system is operational",
+          "calculation": "uptime_minutes / total_minutes * 100",
+          "target": ">99.5%",
+          "frequency": "Real-time",
+          "data_source": "System monitoring logs",
+          "visualization": "Uptime calendar heatmap"
+        }
+      },
+      "brand_metrics": {
+        "brand_awareness": {
+          "metric_name": "Brand Mention Volume",
+          "description": "Number of brand mentions across platforms",
+          "calculation": "COUNT(brand_mentions) per time period",
+          "target": ">50 mentions per week per brand",
+          "frequency": "Daily",
+          "data_source": "Social listening APIs",
+          "visualization": "Word cloud and mention timeline"
+        },
+        "sentiment_score": {
+          "metric_name": "Brand Sentiment Score",
+          "description": "Average sentiment of brand mentions",
+          "calculation": "AVG(sentiment_scores) on -1 to +1 scale",
+          "target": ">0.3 (positive sentiment)",
+          "frequency": "Daily",
+          "data_source": "trend_monitoring.sentiment_score",
+          "visualization": "Sentiment gauge with historical trend"
+        }
+      }
+    },
+    "kpi_dashboard_structure": {
+      "executive_summary": {
+        "widgets": [
+          {
+            "type": "metric_card",
+            "title": "Total Revenue (30d)",
+            "data_source": "SUM(revenue) FROM daily_analytics WHERE date >= NOW() - INTERVAL '30 days'",
+            "format": "currency",
+            "comparison": "previous_30_days"
+          },
+          {
+            "type": "metric_card",
+            "title": "Average ROAS",
+            "data_source": "AVG(roas) FROM daily_analytics WHERE date >= NOW() - INTERVAL '7 days'",
+            "format": "decimal_2",
+            "comparison": "previous_7_days"
+          },
+          {
+            "type": "metric_card",
+            "title": "Active Campaigns",
+            "data_source": "COUNT(*) FROM campaigns WHERE status = 'active'",
+            "format": "integer",
+            "comparison": "none"
+          },
+          {
+            "type": "metric_card",
+            "title": "Net Profit Margin",
+            "data_source": "AVG(net_profit / NULLIF(revenue, 0) * 100) FROM daily_analytics WHERE date >= NOW() - INTERVAL '30 days'",
+            "format": "percentage",
+            "comparison": "previous_30_days"
+          }
+        ]
+      },
+      "financial_dashboard": {
+        "charts": [
+          {
+            "type": "line_chart",
+            "title": "Revenue Trend (90 days)",
+            "data_source": "SELECT date, SUM(revenue) as revenue FROM daily_analytics WHERE date >= NOW() - INTERVAL '90 days' GROUP BY date ORDER BY date",
+            "x_axis": "date",
+            "y_axis": "revenue",
+            "color": "#10B981"
+          },
+          {
+            "type": "waterfall_chart",
+            "title": "Profit Breakdown (Current Month)",
+            "data_source": "Revenue, -COGS, -Ad Spend, -Other Costs, =Net Profit",
+            "categories": ["Revenue", "COGS", "Ad Spend", "Other Costs", "Net Profit"]
+          },
+          {
+            "type": "bar_chart",
+            "title": "ROAS by Campaign",
+            "data_source": "SELECT c.name, AVG(da.roas) as avg_roas FROM campaigns c JOIN daily_analytics da ON c.id = da.campaign_id WHERE da.date >= NOW() - INTERVAL '30 days' GROUP BY c.name",
+            "x_axis": "name",
+            "y_axis": "avg_roas",
+            "threshold_line": 3.0
+          }
+        ]
+      },
+      "customer_dashboard": {
+        "charts": [
+          {
+            "type": "funnel_chart",
+            "title": "Customer Acquisition Funnel",
+            "data_source": "Visitors → Engaged → Cart → Purchase → Repeat",
+            "stages": ["Website Visitors", "Product Views", "Add to Cart", "Purchases", "Repeat Customers"]
+          },
+          {
+            "type": "cohort_chart",
+            "title": "Customer Retention Cohorts",
+            "data_source": "customer_analytics table with cohort analysis",
+            "time_period": "monthly"
+          },
+          {
+            "type": "scatter_plot",
+            "title": "CAC vs CLV Analysis",
+            "data_source": "SELECT acquisition_cost, customer_lifetime_value FROM customer_analytics",
+            "x_axis": "acquisition_cost",
+            "y_axis": "customer_lifetime_value",
+            "diagonal_line": "break_even"
+          }
+        ]
+      },
+      "operational_dashboard": {
+        "charts": [
+          {
+            "type": "heatmap",
+            "title": "Product Performance Matrix",
+            "data_source": "products with calculated performance scores",
+            "x_axis": "brand",
+            "y_axis": "product_category",
+            "value": "performance_score"
+          },
+          {
+            "type": "gauge_chart",
+            "title": "System Health Score",
+            "data_source": "Composite of uptime, success rates, and performance metrics",
+            "min": 0,
+            "max": 100,
+            "thresholds": [70, 85, 95]
+          },
+          {
+            "type": "timeline_chart",
+            "title": "Campaign Lifecycle",
+            "data_source": "campaigns with milestone tracking",
+            "events": ["Created", "Content Generated", "Products Listed", "Launched", "Optimized"]
+          }
+        ]
+      }
+    },
+    "alerting_system": {
+      "alert_channels": [
+        {
+          "type": "email",
+          "recipients": ["admin@viralforge.com"],
+          "severity_levels": ["critical", "high"]
+        },
+        {
+          "type": "slack",
+          "webhook_url": "SLACK_WEBHOOK_URL",
+          "severity_levels": ["critical", "high", "medium"]
+        },
+        {
+          "type": "dashboard_notification",
+          "severity_levels": ["all"]
+        }
+      ],
+      "alert_rules": [
+        {
+          "name": "Revenue Drop Alert",
+          "condition": "daily_revenue < (avg_daily_revenue_7d * 0.5)",
+          "severity": "high",
+          "frequency": "immediate",
+          "message": "Daily revenue dropped significantly below 7-day average"
+        },
+        {
+          "name": "ROAS Critical Alert",
+          "condition": "roas < 1.0 FOR 2 consecutive days",
+          "severity": "critical",
+          "frequency": "immediate",
+          "message": "ROAS below break-even for 2+ days - immediate action required"
+        },
+        {
+          "name": "Workflow Failure Alert",
+          "condition": "workflow_success_rate < 90% in last 24h",
+          "severity": "high",
+          "frequency": "hourly",
+          "message": "Automation workflow success rate below threshold"
+        },
+        {
+          "name": "Customer Acquisition Alert",
+          "condition": "new_customers = 0 FOR 3 consecutive days",
+          "severity": "medium",
+          "frequency": "daily",
+          "message": "No new customer acquisitions in 3 days"
+        }
+      ]
+    },
+    "reporting_schedule": {
+      "real_time": [
+        "Revenue",
+        "Orders",
+        "Website Traffic",
+        "System Status"
+      ],
+      "daily": [
+        "ROAS",
+        "Conversion Rate",
+        "Social Engagement",
+        "Workflow Performance"
+      ],
+      "weekly": [
+        "Customer Lifetime Value",
+        "Product Performance",
+        "Brand Sentiment",
+        "UGC Generation"
+      ],
+      "monthly": [
+        "Comprehensive P&L",
+        "Customer Cohort Analysis",
+        "Campaign ROI Summary",
+        "Strategic Recommendations"
+      ]
+    },
+    "data_quality_metrics": {
+      "completeness": {
+        "description": "Percentage of required data fields populated",
+        "target": ">95%",
+        "check_frequency": "Daily"
+      },
+      "accuracy": {
+        "description": "Data validation against external sources",
+        "target": ">98%",
+        "check_frequency": "Weekly"
+      },
+      "timeliness": {
+        "description": "Data freshness and update frequency",
+        "target": "<1 hour delay",
+        "check_frequency": "Real-time"
+      }
+    },
+    "success_benchmarks": {
+      "30_day_targets": {
+        "total_revenue": "$1,500 across all brands",
+        "average_roas": "3.5+",
+        "net_profit_margin": "25%+",
+        "customer_acquisition": "100+ new customers",
+        "product_launches": "15+ successful products"
+      },
+      "90_day_targets": {
+        "total_revenue": "$5,000 across all brands",
+        "average_roas": "4.0+",
+        "net_profit_margin": "30%+",
+        "customer_acquisition": "500+ new customers",
+        "repeat_purchase_rate": "20%+"
+      },
+      "scaling_indicators": {
+        "ready_to_scale": [
+          "Consistent ROAS >4.0 for 30+ days",
+          "Net profit margin >30%",
+          "Automation success rate >95%",
+          "Customer satisfaction >4.5/5"
+        ],
+        "scale_up_actions": [
+          "Increase ad budget by 50%",
+          "Expand to additional product categories",
+          "Launch new brand verticals",
+          "Implement advanced AI features"
+        ]
+      }
+    }
+  }
+}

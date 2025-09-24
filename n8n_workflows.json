@@ -1,0 +1,1249 @@
+{
+  "viralforge_workflows": {
+    "workflow_1_trend_detection": {
+      "name": "VIRALFORGE - Trend Detection & Event Monitoring",
+      "description": "Monitors trending topics, analyzes search volumes, and triggers campaign creation",
+      "schedule": "0 */3 * * *",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "start-node",
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT * FROM events WHERE status = 'active' AND (peak_date >= NOW() - INTERVAL '30 days' OR peak_date IS NULL)"
+            },
+            "id": "get-active-events",
+            "name": "Get Active Events",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Process each event for trend monitoring\nconst events = $input.all();\nconst results = [];\n\nfor (const event of events) {\n  const eventData = event.json;\n  \n  // Extract keywords for monitoring\n  const keywords = eventData.keywords || [eventData.name];\n  \n  for (const keyword of keywords) {\n    results.push({\n      event_id: eventData.id,\n      event_name: eventData.name,\n      keyword: keyword,\n      event_type: eventData.event_type,\n      priority_score: eventData.priority_score\n    });\n  }\n}\n\nreturn results.map(item => ({ json: item }));"
+            },
+            "id": "process-events",
+            "name": "Process Events for Monitoring",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [680, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://serpapi.com/search",
+              "options": {
+                "queryParameters": {
+                  "engine": "google_trends",
+                  "q": "={{ $json.keyword }}",
+                  "geo": "US",
+                  "time": "now 7-d",
+                  "api_key": "{{ $env.SERPAPI_KEY }}"
+                }
+              }
+            },
+            "id": "google-trends",
+            "name": "Google Trends API",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [900, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://www.reddit.com/search.json",
+              "options": {
+                "queryParameters": {
+                  "q": "={{ $json.keyword }}",
+                  "sort": "hot",
+                  "limit": "25",
+                  "t": "week"
+                }
+              }
+            },
+            "id": "reddit-search",
+            "name": "Reddit Search",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [900, 480]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Analyze trend data and calculate momentum\nconst googleTrends = $('Google Trends API').all();\nconst redditData = $('Reddit Search').all();\nconst processedEvents = $('Process Events for Monitoring').all();\n\nconst results = [];\n\nfor (let i = 0; i < processedEvents.length; i++) {\n  const event = processedEvents[i].json;\n  const trends = googleTrends[i]?.json || {};\n  const reddit = redditData[i]?.json || {};\n  \n  // Calculate search volume (mock calculation - replace with actual API response parsing)\n  const searchVolume = trends.interest_over_time?.length || 0;\n  \n  // Calculate Reddit engagement\n  const redditPosts = reddit.data?.children || [];\n  const totalScore = redditPosts.reduce((sum, post) => sum + (post.data.score || 0), 0);\n  const avgScore = redditPosts.length > 0 ? totalScore / redditPosts.length : 0;\n  \n  // Calculate trend momentum (0-100 scale)\n  const momentum = Math.min(100, (searchVolume * 0.3) + (avgScore * 0.7));\n  \n  // Determine if this should trigger campaign creation\n  const shouldTriggerCampaign = momentum > 50 && event.priority_score > 70;\n  \n  results.push({\n    event_id: event.event_id,\n    keyword: event.keyword,\n    search_volume: searchVolume,\n    reddit_engagement: avgScore,\n    trend_momentum: momentum,\n    sentiment_score: 0.5, // Placeholder - implement sentiment analysis\n    should_trigger_campaign: shouldTriggerCampaign,\n    platform: 'google_trends',\n    recorded_at: new Date().toISOString()\n  });\n}\n\nreturn results.map(item => ({ json: item }));"
+            },
+            "id": "analyze-trends",
+            "name": "Analyze Trend Data",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [1120, 390]
+          },
+          {
+            "parameters": {
+              "operation": "insert",
+              "table": "trend_monitoring",
+              "columns": "event_id,platform,keyword,search_volume,engagement_rate,sentiment_score,data_snapshot,recorded_at"
+            },
+            "id": "save-trend-data",
+            "name": "Save Trend Data",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1340, 390]
+          },
+          {
+            "parameters": {
+              "conditions": {
+                "boolean": [
+                  {
+                    "value1": "={{ $json.should_trigger_campaign }}",
+                    "value2": true
+                  }
+                ]
+              }
+            },
+            "id": "check-trigger-campaign",
+            "name": "Should Trigger Campaign?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [1560, 390]
+          },
+          {
+            "parameters": {
+              "workflowId": "workflow_2_campaign_creation"
+            },
+            "id": "trigger-campaign-creation",
+            "name": "Trigger Campaign Creation",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [1780, 300]
+          }
+        ],
+        "connections": {
+          "Schedule Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Active Events",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Active Events": {
+            "main": [
+              [
+                {
+                  "node": "Process Events for Monitoring",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Process Events for Monitoring": {
+            "main": [
+              [
+                {
+                  "node": "Google Trends API",
+                  "type": "main",
+                  "index": 0
+                },
+                {
+                  "node": "Reddit Search",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Google Trends API": {
+            "main": [
+              [
+                {
+                  "node": "Analyze Trend Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Reddit Search": {
+            "main": [
+              [
+                {
+                  "node": "Analyze Trend Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Analyze Trend Data": {
+            "main": [
+              [
+                {
+                  "node": "Save Trend Data",
+                  "type": "main",
+                  "index": 0
+                },
+                {
+                  "node": "Should Trigger Campaign?",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Should Trigger Campaign?": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Campaign Creation",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "workflow_2_campaign_creation": {
+      "name": "VIRALFORGE - Campaign Creation & Product Generation",
+      "description": "Creates campaigns and generates products based on trending events",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "webhook-trigger",
+            "name": "Webhook Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT e.*, b.* FROM events e CROSS JOIN brands b WHERE e.id = '{{ $json.event_id }}' AND b.status = 'active'"
+            },
+            "id": "get-event-brands",
+            "name": "Get Event & Brands",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Generate campaign strategies for each brand\nconst data = $input.all();\nconst campaigns = [];\n\nfor (const item of data) {\n  const eventData = item.json;\n  \n  // Brand-specific campaign strategies\n  const brandStrategies = {\n    'Mystic Arcana': {\n      angle: 'cosmic_mysticism',\n      products: ['oracle_cards', 'tarot_prints', 'cosmic_mugs'],\n      messaging: 'mystical and spiritual connection to the cosmos'\n    },\n    'EDM Shuffle': {\n      angle: 'futuristic_space',\n      products: ['rave_tees', 'space_hoodies', 'festival_accessories'],\n      messaging: 'high-energy space vibes for the dance floor'\n    },\n    'BirthdayGen': {\n      angle: 'personalized_cosmic',\n      products: ['birthday_star_maps', 'cosmic_mugs', 'celebration_prints'],\n      messaging: 'celebrate your special day with cosmic significance'\n    }\n  };\n  \n  const strategy = brandStrategies[eventData.name] || brandStrategies['Mystic Arcana'];\n  \n  campaigns.push({\n    name: `${eventData.name} - ${eventData.name} Campaign`,\n    brand_id: eventData.id, // This should be brand_id from the query\n    event_id: eventData.id,\n    campaign_type: 'trend_response',\n    status: 'draft',\n    budget_allocated: 50.00, // Start with $50 per campaign\n    target_audience: {\n      demographics: eventData.target_audience || 'millennials_genz',\n      interests: [eventData.event_type, 'space', 'astronomy'],\n      geo: eventData.geographic_focus || ['US']\n    },\n    strategy: strategy,\n    start_date: new Date().toISOString(),\n    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days\n  });\n}\n\nreturn campaigns.map(campaign => ({ json: campaign }));"
+            },
+            "id": "generate-campaigns",
+            "name": "Generate Campaign Strategies",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [680, 300]
+          },
+          {
+            "parameters": {
+              "operation": "insert",
+              "table": "campaigns"
+            },
+            "id": "create-campaigns",
+            "name": "Create Campaigns",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [900, 300]
+          },
+          {
+            "parameters": {
+              "workflowId": "workflow_3_content_creation"
+            },
+            "id": "trigger-content-creation",
+            "name": "Trigger Content Creation",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [1120, 300]
+          }
+        ],
+        "connections": {
+          "Webhook Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Event & Brands",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Event & Brands": {
+            "main": [
+              [
+                {
+                  "node": "Generate Campaign Strategies",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Generate Campaign Strategies": {
+            "main": [
+              [
+                {
+                  "node": "Create Campaigns",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Create Campaigns": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Content Creation",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "workflow_3_content_creation": {
+      "name": "VIRALFORGE - AI Content & Design Generation",
+      "description": "Generates product designs, descriptions, and marketing content using AI",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "webhook-trigger",
+            "name": "Campaign Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT c.*, b.name as brand_name, b.brand_voice, e.name as event_name, e.description as event_description FROM campaigns c JOIN brands b ON c.brand_id = b.id JOIN events e ON c.event_id = e.id WHERE c.id = '{{ $json.campaign_id }}'"
+            },
+            "id": "get-campaign-details",
+            "name": "Get Campaign Details",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Generate product concepts based on campaign strategy\nconst campaign = $input.first().json;\nconst strategy = JSON.parse(campaign.target_audience || '{}').strategy || {};\n\nconst productConcepts = [];\nconst products = strategy.products || ['tshirt', 'mug', 'poster'];\n\nfor (const productType of products) {\n  const concept = {\n    campaign_id: campaign.id,\n    brand_name: campaign.brand_name,\n    event_name: campaign.event_name,\n    product_type: productType,\n    brand_voice: campaign.brand_voice,\n    messaging_angle: strategy.messaging || 'cosmic and mysterious',\n    design_prompt: `Create a ${productType} design for ${campaign.brand_name} featuring ${campaign.event_name}. Style should be ${campaign.brand_voice} with ${strategy.messaging}. Include cosmic, space, and interstellar themes.`,\n    content_prompt: `Write compelling product description for a ${productType} about ${campaign.event_name} for ${campaign.brand_name}. Tone: ${campaign.brand_voice}. Focus on ${strategy.messaging}.`\n  };\n  \n  productConcepts.push(concept);\n}\n\nreturn productConcepts.map(concept => ({ json: concept }));"
+            },
+            "id": "generate-product-concepts",
+            "name": "Generate Product Concepts",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [680, 300]
+          },
+          {
+            "parameters": {
+              "resource": "image",
+              "operation": "generate",
+              "prompt": "={{ $json.design_prompt }}",
+              "options": {
+                "model": "dall-e-3",
+                "size": "1024x1024",
+                "quality": "standard"
+              }
+            },
+            "id": "generate-design",
+            "name": "Generate Design (DALL-E)",
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [900, 200]
+          },
+          {
+            "parameters": {
+              "resource": "text",
+              "operation": "complete",
+              "model": "gpt-4",
+              "prompt": "={{ $json.content_prompt }}\\n\\nGenerate:\\n1. Product title (max 60 chars)\\n2. Product description (150-200 words)\\n3. SEO keywords (comma separated)\\n4. Social media caption\\n5. Pricing suggestion",
+              "options": {
+                "maxTokens": 500,
+                "temperature": 0.7
+              }
+            },
+            "id": "generate-content",
+            "name": "Generate Content (GPT-4)",
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [900, 400]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Combine design and content data\nconst concepts = $('Generate Product Concepts').all();\nconst designs = $('Generate Design (DALL-E)').all();\nconst content = $('Generate Content (GPT-4)').all();\n\nconst products = [];\n\nfor (let i = 0; i < concepts.length; i++) {\n  const concept = concepts[i].json;\n  const design = designs[i]?.json || {};\n  const contentData = content[i]?.json || {};\n  \n  // Parse GPT-4 response (assuming structured format)\n  const contentText = contentData.choices?.[0]?.message?.content || '';\n  const lines = contentText.split('\\n').filter(line => line.trim());\n  \n  const product = {\n    campaign_id: concept.campaign_id,\n    brand_id: concept.brand_id,\n    name: lines[0]?.replace(/^\\d+\\.\\s*/, '') || `${concept.event_name} ${concept.product_type}`,\n    description: lines[1]?.replace(/^\\d+\\.\\s*/, '') || 'Premium quality product featuring cosmic design',\n    design_urls: [design.data?.[0]?.url].filter(Boolean),\n    design_prompt: concept.design_prompt,\n    base_price: concept.product_type === 'mug' ? 19.99 : concept.product_type === 'poster' ? 14.99 : 24.99,\n    cost_price: concept.product_type === 'mug' ? 8.99 : concept.product_type === 'poster' ? 4.99 : 12.99,\n    seo_keywords: lines[2]?.replace(/^\\d+\\.\\s*/, '').split(',').map(k => k.trim()) || [],\n    social_caption: lines[3]?.replace(/^\\d+\\.\\s*/, '') || '',\n    status: 'draft',\n    slug: `${concept.event_name}-${concept.product_type}-${Date.now()}`.toLowerCase().replace(/\\s+/g, '-')\n  };\n  \n  products.push(product);\n}\n\nreturn products.map(product => ({ json: product }));"
+            },
+            "id": "combine-product-data",
+            "name": "Combine Product Data",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [1120, 300]
+          },
+          {
+            "parameters": {
+              "operation": "insert",
+              "table": "products"
+            },
+            "id": "save-products",
+            "name": "Save Products to DB",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1340, 300]
+          },
+          {
+            "parameters": {
+              "workflowId": "workflow_4_printify_listing"
+            },
+            "id": "trigger-printify-listing",
+            "name": "Trigger Printify Listing",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [1560, 300]
+          }
+        ],
+        "connections": {
+          "Campaign Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Campaign Details",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Campaign Details": {
+            "main": [
+              [
+                {
+                  "node": "Generate Product Concepts",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Generate Product Concepts": {
+            "main": [
+              [
+                {
+                  "node": "Generate Design (DALL-E)",
+                  "type": "main",
+                  "index": 0
+                },
+                {
+                  "node": "Generate Content (GPT-4)",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Generate Design (DALL-E)": {
+            "main": [
+              [
+                {
+                  "node": "Combine Product Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Generate Content (GPT-4)": {
+            "main": [
+              [
+                {
+                  "node": "Combine Product Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Combine Product Data": {
+            "main": [
+              [
+                {
+                  "node": "Save Products to DB",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Save Products to DB": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Printify Listing",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "workflow_4_printify_listing": {
+      "name": "VIRALFORGE - Printify Product Listing",
+      "description": "Creates and publishes products on Printify platform",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "webhook-trigger",
+            "name": "Product Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT p.*, b.printify_store_id, b.name as brand_name FROM products p JOIN brands b ON p.brand_id = b.id WHERE p.id = '{{ $json.product_id }}' AND p.status = 'draft'"
+            },
+            "id": "get-product-details",
+            "name": "Get Product Details",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://api.printify.com/v1/uploads/images.json",
+              "authentication": "headerAuth",
+              "httpMethod": "POST",
+              "options": {
+                "headers": {
+                  "Authorization": "Bearer {{ $env.PRINTIFY_API_KEY }}",
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "file_name": "{{ $json.slug }}.png",
+                  "url": "{{ $json.design_urls[0] }}"
+                }
+              }
+            },
+            "id": "upload-design-printify",
+            "name": "Upload Design to Printify",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [680, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Determine product blueprint based on product type\nconst product = $input.first().json;\nconst productName = product.name.toLowerCase();\n\n// Printify blueprint IDs (these are examples - replace with actual IDs)\nconst blueprintMap = {\n  'mug': 17, // Coffee mug\n  'tshirt': 6, // Unisex t-shirt\n  'hoodie': 9, // Unisex hoodie\n  'poster': 19, // Poster\n  'tank': 8, // Tank top\n  'sweatshirt': 9 // Sweatshirt\n};\n\n// Determine blueprint ID\nlet blueprintId = 6; // Default to t-shirt\nfor (const [type, id] of Object.entries(blueprintMap)) {\n  if (productName.includes(type)) {\n    blueprintId = id;\n    break;\n  }\n}\n\n// Get print provider (example: Printful)\nconst printProviderId = 1; // Printful ID\n\nreturn [{\n  json: {\n    ...product,\n    blueprint_id: blueprintId,\n    print_provider_id: printProviderId\n  }\n}];"
+            },
+            "id": "determine-blueprint",
+            "name": "Determine Product Blueprint",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [900, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://api.printify.com/v1/shops/{{ $json.printify_store_id }}/products.json",
+              "authentication": "headerAuth",
+              "httpMethod": "POST",
+              "options": {
+                "headers": {
+                  "Authorization": "Bearer {{ $env.PRINTIFY_API_KEY }}",
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "title": "{{ $json.name }}",
+                  "description": "{{ $json.description }}",
+                  "blueprint_id": "{{ $json.blueprint_id }}",
+                  "print_provider_id": "{{ $json.print_provider_id }}",
+                  "variants": [
+                    {
+                      "id": 1,
+                      "price": "{{ Math.round($json.base_price * 100) }}",
+                      "is_enabled": true
+                    }
+                  ],
+                  "print_areas": [
+                    {
+                      "variant_ids": [1],
+                      "placeholders": [
+                        {
+                          "position": "front",
+                          "images": [
+                            {
+                              "id": "{{ $('Upload Design to Printify').first().json.id }}",
+                              "x": 0.5,
+                              "y": 0.5,
+                              "scale": 1,
+                              "angle": 0
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "id": "create-printify-product",
+            "name": "Create Printify Product",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [1120, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://api.printify.com/v1/shops/{{ $json.printify_store_id }}/products/{{ $('Create Printify Product').first().json.id }}/publish.json",
+              "authentication": "headerAuth",
+              "httpMethod": "POST",
+              "options": {
+                "headers": {
+                  "Authorization": "Bearer {{ $env.PRINTIFY_API_KEY }}",
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "title": true,
+                  "description": true,
+                  "images": true,
+                  "variants": true,
+                  "tags": true,
+                  "keyFeatures": true,
+                  "shipping_template": true
+                }
+              }
+            },
+            "id": "publish-product",
+            "name": "Publish Product",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [1340, 300]
+          },
+          {
+            "parameters": {
+              "operation": "update",
+              "table": "products",
+              "updateKey": "id",
+              "columns": "printify_product_id,status"
+            },
+            "id": "update-product-status",
+            "name": "Update Product Status",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1560, 300]
+          },
+          {
+            "parameters": {
+              "workflowId": "workflow_5_social_posting"
+            },
+            "id": "trigger-social-posting",
+            "name": "Trigger Social Media Posting",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [1780, 300]
+          }
+        ],
+        "connections": {
+          "Product Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Product Details",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Product Details": {
+            "main": [
+              [
+                {
+                  "node": "Upload Design to Printify",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Upload Design to Printify": {
+            "main": [
+              [
+                {
+                  "node": "Determine Product Blueprint",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Determine Product Blueprint": {
+            "main": [
+              [
+                {
+                  "node": "Create Printify Product",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Create Printify Product": {
+            "main": [
+              [
+                {
+                  "node": "Publish Product",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Publish Product": {
+            "main": [
+              [
+                {
+                  "node": "Update Product Status",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Update Product Status": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Social Media Posting",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "workflow_5_social_posting": {
+      "name": "VIRALFORGE - Social Media Automation",
+      "description": "Automatically posts product launches and campaign content to social media",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "webhook-trigger",
+            "name": "Social Trigger",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT p.*, b.name as brand_name, b.social_accounts, c.name as campaign_name FROM products p JOIN brands b ON p.brand_id = b.id LEFT JOIN campaigns c ON p.campaign_id = c.id WHERE p.id = '{{ $json.product_id }}'"
+            },
+            "id": "get-product-social-data",
+            "name": "Get Product & Social Data",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "resource": "text",
+              "operation": "complete",
+              "model": "gpt-4",
+              "prompt": "Create social media posts for a new product launch:\\n\\nProduct: {{ $json.name }}\\nBrand: {{ $json.brand_name }}\\nDescription: {{ $json.description }}\\n\\nGenerate:\\n1. Instagram post caption (with hashtags)\\n2. Twitter/X post (under 280 chars)\\n3. Facebook post\\n4. TikTok video concept\\n\\nMake it engaging, trendy, and include relevant hashtags for maximum reach.",
+              "options": {
+                "maxTokens": 800,
+                "temperature": 0.8
+              }
+            },
+            "id": "generate-social-content",
+            "name": "Generate Social Content",
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [680, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Parse social media content and prepare for posting\nconst product = $('Get Product & Social Data').first().json;\nconst aiContent = $('Generate Social Content').first().json;\n\nconst contentText = aiContent.choices?.[0]?.message?.content || '';\nconst sections = contentText.split(/\\d+\\.\\s*/).filter(s => s.trim());\n\nconst socialAccounts = JSON.parse(product.social_accounts || '{}');\n\nconst posts = [];\n\n// Instagram post\nif (socialAccounts.instagram && sections[0]) {\n  posts.push({\n    platform: 'instagram',\n    account: socialAccounts.instagram,\n    content: sections[0].trim(),\n    image_url: product.design_urls?.[0] || '',\n    product_id: product.id,\n    brand_id: product.brand_id\n  });\n}\n\n// Twitter/X post\nif (socialAccounts.twitter && sections[1]) {\n  posts.push({\n    platform: 'twitter',\n    account: socialAccounts.twitter,\n    content: sections[1].trim(),\n    image_url: product.design_urls?.[0] || '',\n    product_id: product.id,\n    brand_id: product.brand_id\n  });\n}\n\n// Facebook post\nif (socialAccounts.facebook && sections[2]) {\n  posts.push({\n    platform: 'facebook',\n    account: socialAccounts.facebook,\n    content: sections[2].trim(),\n    image_url: product.design_urls?.[0] || '',\n    product_id: product.id,\n    brand_id: product.brand_id\n  });\n}\n\nreturn posts.map(post => ({ json: post }));"
+            },
+            "id": "prepare-social-posts",
+            "name": "Prepare Social Posts",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [900, 300]
+          },
+          {
+            "parameters": {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.platform }}",
+                    "value2": "instagram"
+                  }
+                ]
+              }
+            },
+            "id": "check-instagram",
+            "name": "Is Instagram?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [1120, 200]
+          },
+          {
+            "parameters": {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.platform }}",
+                    "value2": "twitter"
+                  }
+                ]
+              }
+            },
+            "id": "check-twitter",
+            "name": "Is Twitter?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [1120, 400]
+          },
+          {
+            "parameters": {
+              "url": "https://graph.instagram.com/v18.0/{{ $env.INSTAGRAM_USER_ID }}/media",
+              "httpMethod": "POST",
+              "options": {
+                "queryParameters": {
+                  "image_url": "={{ $json.image_url }}",
+                  "caption": "={{ $json.content }}",
+                  "access_token": "{{ $env.INSTAGRAM_ACCESS_TOKEN }}"
+                }
+              }
+            },
+            "id": "post-instagram",
+            "name": "Post to Instagram",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [1340, 150]
+          },
+          {
+            "parameters": {
+              "url": "https://api.twitter.com/2/tweets",
+              "authentication": "oAuth2Api",
+              "httpMethod": "POST",
+              "options": {
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "body": {
+                  "text": "={{ $json.content }}"
+                }
+              }
+            },
+            "id": "post-twitter",
+            "name": "Post to Twitter",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [1340, 350]
+          },
+          {
+            "parameters": {
+              "operation": "insert",
+              "table": "social_posts"
+            },
+            "id": "save-social-posts",
+            "name": "Save Social Posts",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1560, 300]
+          },
+          {
+            "parameters": {
+              "workflowId": "workflow_6_analytics_tracking"
+            },
+            "id": "trigger-analytics",
+            "name": "Trigger Analytics Tracking",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [1780, 300]
+          }
+        ],
+        "connections": {
+          "Social Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Product & Social Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Product & Social Data": {
+            "main": [
+              [
+                {
+                  "node": "Generate Social Content",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Generate Social Content": {
+            "main": [
+              [
+                {
+                  "node": "Prepare Social Posts",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Prepare Social Posts": {
+            "main": [
+              [
+                {
+                  "node": "Is Instagram?",
+                  "type": "main",
+                  "index": 0
+                },
+                {
+                  "node": "Is Twitter?",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Is Instagram?": {
+            "main": [
+              [
+                {
+                  "node": "Post to Instagram",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Is Twitter?": {
+            "main": [
+              [
+                {
+                  "node": "Post to Twitter",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Post to Instagram": {
+            "main": [
+              [
+                {
+                  "node": "Save Social Posts",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Post to Twitter": {
+            "main": [
+              [
+                {
+                  "node": "Save Social Posts",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Save Social Posts": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Analytics Tracking",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "workflow_6_analytics_tracking": {
+      "name": "VIRALFORGE - Analytics & KPI Tracking",
+      "description": "Collects and processes analytics data for KPI dashboard",
+      "schedule": "0 1 * * *",
+      "workflow": {
+        "nodes": [
+          {
+            "parameters": {},
+            "id": "schedule-trigger",
+            "name": "Daily Analytics Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [240, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "SELECT DISTINCT brand_id, campaign_id FROM campaigns WHERE status = 'active' UNION SELECT DISTINCT brand_id, NULL as campaign_id FROM brands WHERE status = 'active'"
+            },
+            "id": "get-active-entities",
+            "name": "Get Active Brands & Campaigns",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [460, 300]
+          },
+          {
+            "parameters": {
+              "url": "https://www.googleapis.com/analytics/v3/data/ga",
+              "options": {
+                "queryParameters": {
+                  "ids": "ga:{{ $env.GA_VIEW_ID }}",
+                  "start-date": "yesterday",
+                  "end-date": "yesterday",
+                  "metrics": "ga:sessions,ga:pageviews,ga:transactions,ga:transactionRevenue,ga:adCost",
+                  "dimensions": "ga:campaign,ga:source",
+                  "access_token": "{{ $env.GA_ACCESS_TOKEN }}"
+                }
+              }
+            },
+            "id": "fetch-ga-data",
+            "name": "Fetch Google Analytics Data",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [680, 200]
+          },
+          {
+            "parameters": {
+              "url": "https://api.printify.com/v1/shops/{{ $env.PRINTIFY_STORE_ID }}/orders.json",
+              "authentication": "headerAuth",
+              "options": {
+                "headers": {
+                  "Authorization": "Bearer {{ $env.PRINTIFY_API_KEY }}"
+                },
+                "queryParameters": {
+                  "created_at_min": "{{ $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}T00:00:00Z",
+                  "created_at_max": "{{ $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}T23:59:59Z"
+                }
+              }
+            },
+            "id": "fetch-printify-orders",
+            "name": "Fetch Printify Orders",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [680, 400]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Process analytics data and calculate KPIs\nconst entities = $('Get Active Brands & Campaigns').all();\nconst gaData = $('Fetch Google Analytics Data').first().json;\nconst printifyOrders = $('Fetch Printify Orders').first().json;\n\nconst yesterday = new Date();\nyesterday.setDate(yesterday.getDate() - 1);\nconst dateStr = yesterday.toISOString().split('T')[0];\n\nconst analyticsRecords = [];\n\n// Process Google Analytics data\nconst gaRows = gaData.rows || [];\nconst gaTotals = {\n  sessions: 0,\n  pageviews: 0,\n  transactions: 0,\n  revenue: 0,\n  adCost: 0\n};\n\nfor (const row of gaRows) {\n  gaTotals.sessions += parseInt(row[2]) || 0;\n  gaTotals.pageviews += parseInt(row[3]) || 0;\n  gaTotals.transactions += parseInt(row[4]) || 0;\n  gaTotals.revenue += parseFloat(row[5]) || 0;\n  gaTotals.adCost += parseFloat(row[6]) || 0;\n}\n\n// Process Printify orders\nconst orders = printifyOrders.data || [];\nconst orderMetrics = {\n  ordersCount: orders.length,\n  totalRevenue: 0,\n  totalCogs: 0,\n  unitsSold: 0\n};\n\nfor (const order of orders) {\n  orderMetrics.totalRevenue += parseFloat(order.total_price) || 0;\n  orderMetrics.totalCogs += parseFloat(order.total_cost) || 0;\n  orderMetrics.unitsSold += order.line_items?.length || 0;\n}\n\n// Create analytics records for each entity\nfor (const entity of entities) {\n  const record = {\n    date: dateStr,\n    brand_id: entity.json.brand_id,\n    campaign_id: entity.json.campaign_id,\n    \n    // Revenue metrics\n    revenue: orderMetrics.totalRevenue,\n    orders_count: orderMetrics.ordersCount,\n    units_sold: orderMetrics.unitsSold,\n    average_order_value: orderMetrics.ordersCount > 0 ? orderMetrics.totalRevenue / orderMetrics.ordersCount : 0,\n    \n    // Cost metrics\n    ad_spend: gaTotals.adCost,\n    cogs: orderMetrics.totalCogs,\n    total_costs: gaTotals.adCost + orderMetrics.totalCogs,\n    \n    // Traffic metrics\n    website_visitors: gaTotals.sessions,\n    page_views: gaTotals.pageviews,\n    conversion_rate: gaTotals.sessions > 0 ? (orderMetrics.ordersCount / gaTotals.sessions * 100) : 0,\n    \n    // Social metrics (placeholder - integrate with actual social APIs)\n    social_impressions: 0,\n    social_engagement: 0,\n    social_clicks: 0\n  };\n  \n  analyticsRecords.push(record);\n}\n\nreturn analyticsRecords.map(record => ({ json: record }));"
+            },
+            "id": "process-analytics-data",
+            "name": "Process Analytics Data",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [900, 300]
+          },
+          {
+            "parameters": {
+              "operation": "upsert",
+              "table": "daily_analytics",
+              "conflictColumns": "date,brand_id,campaign_id"
+            },
+            "id": "save-daily-analytics",
+            "name": "Save Daily Analytics",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1120, 300]
+          },
+          {
+            "parameters": {
+              "functionCode": "// Calculate and update customer analytics\nconst analyticsData = $input.all();\n\n// This would typically involve more complex customer segmentation\n// For now, we'll create a simple update trigger\n\nreturn [{\n  json: {\n    trigger: 'update_customer_analytics',\n    date: new Date().toISOString().split('T')[0],\n    processed_records: analyticsData.length\n  }\n}];"
+            },
+            "id": "trigger-customer-analytics",
+            "name": "Trigger Customer Analytics Update",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [1340, 300]
+          },
+          {
+            "parameters": {
+              "operation": "executeQuery",
+              "query": "CALL update_customer_lifetime_values();"
+            },
+            "id": "update-clv",
+            "name": "Update Customer CLV",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [1560, 300]
+          }
+        ],
+        "connections": {
+          "Daily Analytics Trigger": {
+            "main": [
+              [
+                {
+                  "node": "Get Active Brands & Campaigns",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Get Active Brands & Campaigns": {
+            "main": [
+              [
+                {
+                  "node": "Fetch Google Analytics Data",
+                  "type": "main",
+                  "index": 0
+                },
+                {
+                  "node": "Fetch Printify Orders",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Fetch Google Analytics Data": {
+            "main": [
+              [
+                {
+                  "node": "Process Analytics Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Fetch Printify Orders": {
+            "main": [
+              [
+                {
+                  "node": "Process Analytics Data",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Process Analytics Data": {
+            "main": [
+              [
+                {
+                  "node": "Save Daily Analytics",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Save Daily Analytics": {
+            "main": [
+              [
+                {
+                  "node": "Trigger Customer Analytics Update",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          },
+          "Trigger Customer Analytics Update": {
+            "main": [
+              [
+                {
+                  "node": "Update Customer CLV",
+                  "type": "main",
+                  "index": 0
+                }
+              ]
+            ]
+          }
+        }
+      }
+    }
+  },
+  "environment_variables": {
+    "required_env_vars": [
+      "SUPABASE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "OPENAI_API_KEY",
+      "PRINTIFY_API_KEY",
+      "PRINTIFY_STORE_ID",
+      "SERPAPI_KEY",
+      "GA_VIEW_ID",
+      "GA_ACCESS_TOKEN",
+      "INSTAGRAM_ACCESS_TOKEN",
+      "INSTAGRAM_USER_ID",
+      "TWITTER_API_KEY",
+      "TWITTER_API_SECRET",
+      "TWITTER_ACCESS_TOKEN",
+      "TWITTER_ACCESS_TOKEN_SECRET"
+    ],
+    "optional_env_vars": [
+      "FACEBOOK_ACCESS_TOKEN",
+      "TIKTOK_ACCESS_TOKEN",
+      "PINTEREST_ACCESS_TOKEN"
+    ]
+  },
+  "workflow_triggers": {
+    "manual_triggers": [
+      "workflow_2_campaign_creation",
+      "workflow_3_content_creation",
+      "workflow_4_printify_listing",
+      "workflow_5_social_posting"
+    ],
+    "scheduled_triggers": [
+      {
+        "workflow": "workflow_1_trend_detection",
+        "schedule": "Every 3 hours",
+        "cron": "0 */3 * * *"
+      },
+      {
+        "workflow": "workflow_6_analytics_tracking",
+        "schedule": "Daily at 1 AM",
+        "cron": "0 1 * * *"
+      }
+    ],
+    "webhook_triggers": [
+      {
+        "workflow": "workflow_2_campaign_creation",
+        "endpoint": "/webhook/campaign-creation",
+        "method": "POST"
+      },
+      {
+        "workflow": "workflow_3_content_creation",
+        "endpoint": "/webhook/content-creation",
+        "method": "POST"
+      }
+    ]
+  }
+}
