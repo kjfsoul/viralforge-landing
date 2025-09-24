@@ -11,6 +11,24 @@ export default function NewsSection({ products = [] }: { products?: any[] }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
+  const summarize = (
+    text: string,
+    maxSentences: number = 2,
+    maxChars: number = 140
+  ) => {
+    if (!text) return "";
+    const normalized = text.replace(/\s+/g, " ").trim();
+    const sentences = normalized.split(/(?<=[.!?])\s+/);
+    let result = sentences.slice(0, maxSentences).join(" ");
+    if (result.length > maxChars) {
+      result = result.slice(0, maxChars);
+      const lastSpace = result.lastIndexOf(" ");
+      if (lastSpace > 0) result = result.slice(0, lastSpace);
+      result += "…";
+    }
+    return result;
+  };
+
   return (
     <section
       id="news"
@@ -57,11 +75,15 @@ export default function NewsSection({ products = [] }: { products?: any[] }) {
                   <div className="flex flex-col lg:flex-row">
                     {/* Image */}
                     <div className="lg:w-1/3">
-                      <div className="relative aspect-video lg:aspect-square lg:h-full">
+                      <div className="relative w-full h-40 md:h-44 lg:h-48 overflow-hidden rounded-md">
                         <Image
-                          src={product.image_url}
+                          src={
+                            product?.images?.[0]?.url ||
+                            "/placeholder-product.jpg"
+                          }
                           alt={product.title}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover"
                         />
                       </div>
@@ -70,12 +92,11 @@ export default function NewsSection({ products = [] }: { products?: any[] }) {
                     {/* Content */}
                     <div className="lg:w-2/3 p-6">
                       <CardHeader className="p-0 mb-4">
-                        <h3 className="text-xl lg:text-2xl font-bold text-white mb-3">
+                        <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">
                           {product.title}
                         </h3>
-
-                        <p className="text-gray-300 text-base leading-relaxed">
-                          {product.description}
+                        <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
+                          {summarize(product.description, 2, 140)}
                         </p>
                       </CardHeader>
                     </div>

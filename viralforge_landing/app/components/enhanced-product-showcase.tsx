@@ -4,6 +4,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { summarizeText } from "@/lib/utils";
 import { motion, useInView } from 'framer-motion'
 import { ChevronRight, ExternalLink, Heart, Share2, ShoppingCart, Sparkles, Star, Store } from 'lucide-react'
 import Image from 'next/image'
@@ -93,7 +94,13 @@ export default function EnhancedProductShowcase() {
     'BirthdayGen': featuredProducts.filter(p => p.brand === 'BirthdayGen').slice(0, 3)
   }
 
-  const ProductCard = ({ product, index }: { product: FeaturedProduct; index: number }) => (
+  const ProductCard = ({
+    product,
+    index,
+  }: {
+    product: FeaturedProduct;
+    index: number;
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -103,19 +110,24 @@ export default function EnhancedProductShowcase() {
         {/* Product Image */}
         <div className="relative aspect-square">
           <Image
-            src={product.images[0]?.url || '/placeholder-product.jpg'}
+            src={product.images[0]?.url || "/placeholder-product.jpg"}
             alt={product.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          
+
           {/* Status Badge */}
-          <Badge className={`absolute top-2 left-2 ${
-            product.urgent ? 'bg-red-500 animate-pulse' :
-            product.status === 'Best Seller' ? 'bg-green-500' :
-            product.status === 'New Release' ? 'bg-blue-500' :
-            'bg-gray-600'
-          } text-white text-xs`}>
+          <Badge
+            className={`absolute top-2 left-2 ${
+              product.urgent
+                ? "bg-red-500 animate-pulse"
+                : product.status === "Best Seller"
+                  ? "bg-green-500"
+                  : product.status === "New Release"
+                    ? "bg-blue-500"
+                    : "bg-gray-600"
+            } text-white text-xs`}
+          >
             {product.status}
           </Badge>
 
@@ -127,7 +139,9 @@ export default function EnhancedProductShowcase() {
               className="w-8 h-8 p-0 bg-gray-900/80 hover:bg-red-500"
               onClick={() => toggleLike(product.id)}
             >
-              <Heart className={`h-4 w-4 ${likedProducts.includes(product.id) ? 'fill-current text-red-500' : 'text-gray-400'}`} />
+              <Heart
+                className={`h-4 w-4 ${likedProducts.includes(product.id) ? "fill-current text-red-500" : "text-gray-400"}`}
+              />
             </Button>
             <Button
               size="sm"
@@ -145,7 +159,10 @@ export default function EnhancedProductShowcase() {
           <div className="space-y-3">
             {/* Brand and Category */}
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+              <Badge
+                variant="outline"
+                className="text-xs border-gray-600 text-gray-400"
+              >
                 {product.brand}
               </Badge>
               <Badge className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">
@@ -158,24 +175,29 @@ export default function EnhancedProductShowcase() {
               <h3 className="font-semibold text-white text-lg mb-1 group-hover:text-purple-400 transition-colors line-clamp-2">
                 {product.title}
               </h3>
-              <span className="text-xl font-bold text-cyan-400">{formatPrice(product.price)}</span>
+              <span className="text-xl font-bold text-cyan-400">
+                {formatPrice(product.price)}
+              </span>
             </div>
 
             {/* Description */}
             <p className="text-sm text-gray-400 leading-relaxed line-clamp-3">
-              {product.description}
+              {summarizeText(product.description, {
+                sentences: 2,
+                maxChars: 140,
+              })}
             </p>
 
             {/* Action Buttons */}
             <div className="flex space-x-2 pt-2">
-              <Button 
+              <Button
                 className="flex-1 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white group"
                 onClick={() => openProductLink(product)}
               >
                 <ShoppingCart className="mr-2 h-4 w-4 group-hover:animate-bounce" />
                 Buy Now
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 className="border-gray-600 text-gray-300 hover:bg-gray-800"
                 onClick={() => openProductLink(product)}
@@ -187,7 +209,7 @@ export default function EnhancedProductShowcase() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 
   if (loading) {
     return (

@@ -1,12 +1,12 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ShoppingCart, ExternalLink, Star, Zap } from 'lucide-react'
+import { summarizeText } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { ExternalLink, ShoppingCart, Star, Zap } from "lucide-react";
 import Image from 'next/image'
 
 interface Product {
@@ -55,12 +55,13 @@ export default function HeroProductShowcase({ products }: { products: Product[] 
             </Badge>
             <Zap className="h-6 w-6 text-red-500 animate-pulse" />
           </motion.div>
-          
+
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
             Limited Time Commemorative Collection
           </h2>
           <p className="text-gray-300 text-lg">
-            Celebrate humanity's third interstellar visitor with these exclusive designs
+            Celebrate humanity's third interstellar visitor with these exclusive
+            designs
           </p>
         </div>
 
@@ -75,31 +76,40 @@ export default function HeroProductShowcase({ products }: { products: Product[] 
               <Card className="bg-gray-900/70 border-gray-700 hover:border-red-500/50 transition-all duration-300 group overflow-hidden">
                 <div className="relative aspect-square">
                   <Image
-                    src={product.images[0]?.url || '/placeholder-product.jpg'}
+                    src={product.images[0]?.url || "/placeholder-product.jpg"}
                     alt={product.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  
+
                   {/* Status Badge */}
-                  <Badge className={`absolute top-3 left-3 ${
-                    product.urgent ? 'bg-red-500 animate-pulse' :
-                    product.status.includes('Limited') ? 'bg-orange-500' :
-                    'bg-blue-500'
-                  } text-white`}>
+                  <Badge
+                    className={`absolute top-3 left-3 ${
+                      product.urgent
+                        ? "bg-red-500 animate-pulse"
+                        : product.status.includes("Limited")
+                          ? "bg-orange-500"
+                          : "bg-blue-500"
+                    } text-white`}
+                  >
                     {product.status}
                   </Badge>
 
                   {/* Price Badge */}
                   <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-1">
-                    <span className="text-cyan-400 font-bold text-lg">{formatPrice(product.price)}</span>
+                    <span className="text-cyan-400 font-bold text-lg">
+                      {formatPrice(product.price)}
+                    </span>
                   </div>
                 </div>
 
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+                      <Badge
+                        variant="outline"
+                        className="text-xs border-gray-600 text-gray-400"
+                      >
                         {product.brand}
                       </Badge>
                       <div className="flex items-center space-x-1">
@@ -116,22 +126,29 @@ export default function HeroProductShowcase({ products }: { products: Product[] 
                     </h3>
 
                     <p className="text-sm text-gray-400 line-clamp-2">
-                      {product.description}
+                      {summarizeText(product.description, {
+                        sentences: 2,
+                        maxChars: 120,
+                      })}
                     </p>
 
                     <div className="flex space-x-2">
-                      <Button 
+                      <Button
                         className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white group"
-                        onClick={() => window.open(product.printify_url, '_blank')}
+                        onClick={() =>
+                          window.open(product.printify_url, "_blank")
+                        }
                       >
                         <ShoppingCart className="mr-2 h-4 w-4 group-hover:animate-bounce" />
                         Shop Now
                       </Button>
-                      <Button 
+                      <Button
                         variant="outline"
                         size="sm"
                         className="border-gray-600 text-gray-300 hover:bg-gray-800"
-                        onClick={() => window.open(product.printify_url, '_blank')}
+                        onClick={() =>
+                          window.open(product.printify_url, "_blank")
+                        }
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
@@ -150,10 +167,12 @@ export default function HeroProductShowcase({ products }: { products: Product[] 
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-8"
         >
-          <Button 
+          <Button
             variant="outline"
             className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-red-500"
-            onClick={() => window.open('https://3iatlas.printify.me/', '_blank')}
+            onClick={() =>
+              window.open("https://3iatlas.printify.me/", "_blank")
+            }
           >
             <ExternalLink className="mr-2 h-4 w-4" />
             Browse Complete Collection
@@ -161,5 +180,5 @@ export default function HeroProductShowcase({ products }: { products: Product[] 
         </motion.div>
       </div>
     </motion.section>
-  )
+  );
 }

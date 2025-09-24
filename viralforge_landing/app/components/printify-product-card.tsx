@@ -30,28 +30,43 @@ export default function PrintifyProductCard({
     }).format(price);
   };
 
-  const truncateDescription = (text: string, maxLength: number = 120) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  const summarize = (
+    text: string,
+    maxSentences: number = 2,
+    maxChars: number = 160
+  ) => {
+    if (!text) return "";
+    const normalized = text.replace(/\s+/g, " ").trim();
+    const sentences = normalized.split(/(?<=[.!?])\s+/);
+    let result = sentences.slice(0, maxSentences).join(" ");
+    if (result.length > maxChars) {
+      result = result.slice(0, maxChars);
+      const lastSpace = result.lastIndexOf(" ");
+      if (lastSpace > 0) result = result.slice(0, lastSpace);
+      result += "…";
+    }
+    return result;
   };
 
   const getVariantClasses = () => {
     switch (variant) {
-      case 'compact':
-        return 'p-3';
-      case 'featured':
-        return 'p-6 border-2 border-purple-500/50 bg-gradient-to-br from-purple-900/20 to-blue-900/20';
+      case "compact":
+        return "p-3";
+      case "featured":
+        return "p-6 border-2 border-purple-500/50 bg-gradient-to-br from-purple-900/20 to-blue-900/20";
       default:
-        return 'p-4';
+        return "p-4";
     }
   };
 
   return (
-    <div className={`bg-gray-900/50 border border-gray-700 rounded-lg hover:border-gray-600 transition-all duration-300 group ${getVariantClasses()}`}>
+    <div
+      className={`bg-gray-900/50 border border-gray-700 rounded-lg hover:border-gray-600 transition-all duration-300 group ${getVariantClasses()}`}
+    >
       {/* Product Image */}
       <div className="relative aspect-square mb-4 overflow-hidden rounded-lg">
         <Image
-          src={product.images[0]?.url || '/placeholder-product.jpg'}
+          src={product.images[0]?.url || "/placeholder-product.jpg"}
           alt={product.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -62,7 +77,7 @@ export default function PrintifyProductCard({
             URGENT
           </div>
         )}
-        {product.status === 'Available' && (
+        {product.status === "Available" && (
           <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">
             LIVE
           </div>
@@ -77,16 +92,18 @@ export default function PrintifyProductCard({
         </div>
 
         {/* Title */}
-        <h3 className={`font-bold text-white group-hover:text-purple-300 transition-colors ${
-          variant === 'compact' ? 'text-sm' : 'text-lg'
-        }`}>
+        <h3
+          className={`font-bold text-white group-hover:text-purple-300 transition-colors ${
+            variant === "compact" ? "text-sm" : "text-lg"
+          }`}
+        >
           {product.title}
         </h3>
 
         {/* Description */}
-        {variant !== 'compact' && (
-          <p className="text-gray-400 text-sm leading-relaxed">
-            {truncateDescription(product.description)}
+        {variant !== "compact" && (
+          <p className="text-gray-400 text-sm leading-relaxed line-clamp-2">
+            {summarize(product.description, 2, 120)}
           </p>
         )}
 
@@ -100,19 +117,27 @@ export default function PrintifyProductCard({
           <div className="text-lg font-bold text-white">
             {formatPrice(product.price)}
           </div>
-          
-          <Link
-            href={product.printify_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 hover:scale-105 transform"
-          >
-            Buy Now
-          </Link>
+
+          <div className="flex gap-2">
+            <Link
+              href={`/products/${encodeURIComponent(product.id)}`}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 hover:scale-105 transform"
+            >
+              View
+            </Link>
+            <Link
+              href={product.printify_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+            >
+              Buy
+            </Link>
+          </div>
         </div>
 
         {/* Tags */}
-        {product.tags && product.tags.length > 0 && variant !== 'compact' && (
+        {product.tags && product.tags.length > 0 && variant !== "compact" && (
           <div className="flex flex-wrap gap-1 pt-2">
             {product.tags.slice(0, 3).map((tag, index) => (
               <span

@@ -1,14 +1,22 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
-import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Target, Zap, RotateCcw, Play, Pause, RefreshCw } from 'lucide-react'
-import TrajectoryProductWidget from './trajectory-product-widget'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { motion } from "framer-motion";
+import {
+  AlertTriangle,
+  Pause,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  Target,
+  Zap,
+} from "lucide-react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 
 interface TrajectoryParams {
   velocity: number // km/s
@@ -177,7 +185,8 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
             3I/Atlas Trajectory Simulator
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Modify orbital parameters and see where 3I/Atlas could have gone. Will it hit Earth, Mars, or escape to the stars?
+            Modify orbital parameters and see where 3I/Atlas could have gone.
+            Will it hit Earth, Mars, or escape to the stars?
           </p>
         </motion.div>
 
@@ -195,91 +204,107 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
               <div className="space-y-3">
                 <label className="text-gray-300 font-medium flex items-center justify-between">
                   Velocity: {params.velocity.toFixed(1)} km/s
-                  {showRealData && Math.abs(params.velocity - realParams.velocity) < 0.1 && (
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">REAL DATA</Badge>
-                  )}
+                  {showRealData &&
+                    Math.abs(params.velocity - realParams.velocity) < 0.1 && (
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
+                        REAL DATA
+                      </Badge>
+                    )}
                 </label>
                 <Slider
                   value={[params.velocity]}
                   onValueChange={(value) => {
-                    setParams(prev => ({ ...prev, velocity: value[0] }))
-                    setShowRealData(false)
+                    setParams((prev) => ({ ...prev, velocity: value[0] }));
+                    setShowRealData(false);
                   }}
                   min={5}
                   max={80}
                   step={0.1}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Higher velocity = more likely to escape Solar System</p>
+                <p className="text-sm text-gray-400">
+                  Higher velocity = more likely to escape Solar System
+                </p>
               </div>
-
               {/* Angle Control */}
               <div className="space-y-3">
                 <label className="text-gray-300 font-medium flex items-center justify-between">
                   Trajectory Angle: {params.angle.toFixed(1)}°
-                  {showRealData && Math.abs(params.angle - realParams.angle) < 0.1 && (
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">REAL DATA</Badge>
-                  )}
+                  {showRealData &&
+                    Math.abs(params.angle - realParams.angle) < 0.1 && (
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
+                        REAL DATA
+                      </Badge>
+                    )}
                 </label>
                 <Slider
                   value={[params.angle]}
                   onValueChange={(value) => {
-                    setParams(prev => ({ ...prev, angle: value[0] }))
-                    setShowRealData(false)
+                    setParams((prev) => ({ ...prev, angle: value[0] }));
+                    setShowRealData(false);
                   }}
                   min={0}
                   max={90}
                   step={0.1}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Steeper angles increase planetary collision risk</p>
+                <p className="text-sm text-gray-400">
+                  Steeper angles increase planetary collision risk
+                </p>
               </div>
-
               {/* Distance Control */}
               <div className="space-y-3">
                 <label className="text-gray-300 font-medium flex items-center justify-between">
                   Solar Distance: {params.distance.toFixed(2)} AU
-                  {showRealData && Math.abs(params.distance - realParams.distance) < 0.01 && (
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">REAL DATA</Badge>
-                  )}
+                  {showRealData &&
+                    Math.abs(params.distance - realParams.distance) < 0.01 && (
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
+                        REAL DATA
+                      </Badge>
+                    )}
                 </label>
                 <Slider
                   value={[params.distance]}
                   onValueChange={(value) => {
-                    setParams(prev => ({ ...prev, distance: value[0] }))
-                    setShowRealData(false)
+                    setParams((prev) => ({ ...prev, distance: value[0] }));
+                    setShowRealData(false);
                   }}
                   min={0.1}
                   max={10}
                   step={0.01}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">Closer to Sun = stronger gravitational effects</p>
+                <p className="text-sm text-gray-400">
+                  Closer to Sun = stronger gravitational effects
+                </p>
               </div>
-
-              {/* Mass Control */}
+              ;{/* Mass Control */}
               <div className="space-y-3">
                 <label className="text-gray-300 font-medium flex items-center justify-between">
                   Relative Mass: {params.mass.toFixed(1)}x
-                  {showRealData && Math.abs(params.mass - realParams.mass) < 0.1 && (
-                    <Badge className="bg-green-500/20 text-green-400 text-xs">REAL DATA</Badge>
-                  )}
+                  {showRealData &&
+                    Math.abs(params.mass - realParams.mass) < 0.1 && (
+                      <Badge className="bg-green-500/20 text-green-400 text-xs">
+                        REAL DATA
+                      </Badge>
+                    )}
                 </label>
                 <Slider
                   value={[params.mass]}
                   onValueChange={(value) => {
-                    setParams(prev => ({ ...prev, mass: value[0] }))
-                    setShowRealData(false)
+                    setParams((prev) => ({ ...prev, mass: value[0] }));
+                    setShowRealData(false);
                   }}
                   min={0.1}
                   max={5}
                   step={0.1}
                   className="w-full"
                 />
-                <p className="text-sm text-gray-400">More mass = harder to deflect from trajectory</p>
+                <p className="text-sm text-gray-400">
+                  More mass = harder to deflect from trajectory
+                </p>
               </div>
-
-              {/* Control Buttons */}
+              ;{/* Control Buttons */}
               <div className="flex space-x-4 pt-4">
                 <Button
                   onClick={() => runSimulation(params)}
@@ -323,7 +348,11 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
                 <div className="text-center py-12">
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                     className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"
                   />
                   <p className="text-gray-300 mb-2">Computing trajectory...</p>
@@ -338,11 +367,13 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
                 </div>
               ) : result ? (
                 <div className="space-y-6">
-                  <div className={`p-4 rounded-lg border ${getOutcomeColor(result.outcome)}`}>
+                  <div
+                    className={`p-4 rounded-lg border ${getOutcomeColor(result.outcome)}`}
+                  >
                     <div className="flex items-center space-x-3 mb-3">
                       {getDangerIcon(result.danger_level)}
                       <h3 className="text-lg font-bold capitalize">
-                        {result.outcome.replace('_', ' ')}
+                        {result.outcome.replace("_", " ")}
                       </h3>
                       <Badge className="bg-gray-700 text-white">
                         {result.probability}% Probability
@@ -360,20 +391,25 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
 
                   {/* Outcome Comparison */}
                   <div className="bg-gray-800/50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-white mb-3">What Actually Happened:</h4>
+                    <h4 className="font-semibold text-white mb-3">
+                      What Actually Happened:
+                    </h4>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      The real 3I/Atlas safely passed by Mars on October 2-3, 2025, at a distance of 
-                      0.0328 AU (4.9 million km) and continues on its journey out of the Solar System 
-                      at 26.3 km/s. No planetary impacts occurred! 🌟
+                      The real 3I/Atlas safely passed by Mars on October 2-3,
+                      2025, at a distance of 0.0328 AU (4.9 million km) and
+                      continues on its journey out of the Solar System at 26.3
+                      km/s. No planetary impacts occurred! 🌟
                     </p>
                   </div>
 
                   {/* Educational Note */}
                   <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg">
                     <p className="text-xs text-blue-300">
-                      <strong>Educational Note:</strong> This simulator demonstrates how small changes 
-                      in orbital parameters can dramatically alter an object's trajectory. Real asteroid 
-                      tracking involves complex gravitational calculations across multiple bodies.
+                      <strong>Educational Note:</strong> This simulator
+                      demonstrates how small changes in orbital parameters can
+                      dramatically alter an object's trajectory. Real asteroid
+                      tracking involves complex gravitational calculations
+                      across multiple bodies.
                     </p>
                   </div>
                 </div>
@@ -396,15 +432,22 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
         >
           <Card className="bg-gray-900/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white text-center">Quick Scenarios</CardTitle>
+              <CardTitle className="text-white text-center">
+                Quick Scenarios
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Button
                   onClick={() => {
-                    const dangerParams = { velocity: 18.5, angle: 25, distance: 1.2, mass: 2.0 }
-                    setParams(dangerParams)
-                    runSimulation(dangerParams)
+                    const dangerParams = {
+                      velocity: 18.5,
+                      angle: 25,
+                      distance: 1.2,
+                      mass: 2.0,
+                    };
+                    setParams(dangerParams);
+                    runSimulation(dangerParams);
                   }}
                   className="bg-red-900/30 border border-red-500/30 text-red-300 hover:bg-red-900/50"
                 >
@@ -412,9 +455,14 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
                 </Button>
                 <Button
                   onClick={() => {
-                    const escapeParams = { velocity: 65.0, angle: 75, distance: 0.8, mass: 0.5 }
-                    setParams(escapeParams)
-                    runSimulation(escapeParams)
+                    const escapeParams = {
+                      velocity: 65.0,
+                      angle: 75,
+                      distance: 0.8,
+                      mass: 0.5,
+                    };
+                    setParams(escapeParams);
+                    runSimulation(escapeParams);
                   }}
                   className="bg-green-900/30 border border-green-500/30 text-green-300 hover:bg-green-900/50"
                 >
@@ -422,9 +470,14 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
                 </Button>
                 <Button
                   onClick={() => {
-                    const captureParams = { velocity: 25.0, angle: 45, distance: 6.5, mass: 1.5 }
-                    setParams(captureParams)
-                    runSimulation(captureParams)
+                    const captureParams = {
+                      velocity: 25.0,
+                      angle: 45,
+                      distance: 6.5,
+                      mass: 1.5,
+                    };
+                    setParams(captureParams);
+                    runSimulation(captureParams);
                   }}
                   className="bg-blue-900/30 border border-blue-500/30 text-blue-300 hover:bg-blue-900/50"
                 >
@@ -444,15 +497,20 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
             >
-              <Card className={`bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-all duration-300 overflow-hidden`}>
+              <Card
+                className={`bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-all duration-300 overflow-hidden`}
+              >
                 <div className="flex flex-col lg:flex-row">
                   {/* Image */}
                   <div className="lg:w-1/3">
-                    <div className="relative aspect-video lg:aspect-square lg:h-full">
+                    <div className="relative w-full h-40 md:h-44 lg:h-48 overflow-hidden rounded-md">
                       <Image
-                        src={product.image_url}
+                        src={
+                          product.images?.[0]?.url || "/placeholder-product.jpg"
+                        }
                         alt={product.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover"
                       />
                     </div>
@@ -464,9 +522,20 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
                       <h3 className="text-xl lg:text-2xl font-bold text-white mb-3">
                         {product.title}
                       </h3>
-                      
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        {product.description}
+
+                      <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
+                        {(() => {
+                          const text = (product.description || "")
+                            .replace(/\s+/g, " ")
+                            .trim();
+                          const parts = text
+                            .split(/(?<=[.!?])\s+/)
+                            .slice(0, 2)
+                            .join(" ");
+                          return parts.length > 140
+                            ? parts.slice(0, 140).replace(/\s\S*$/, "") + "…"
+                            : parts;
+                        })()}
                       </p>
                     </CardHeader>
                   </div>
@@ -475,8 +544,7 @@ export default function AtlasTrajectorySimulator({ products }: { products: any[]
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
-  )
+  );
 }

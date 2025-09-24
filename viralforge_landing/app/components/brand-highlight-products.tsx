@@ -1,14 +1,13 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ShoppingCart, ExternalLink } from 'lucide-react'
-import Image from 'next/image'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion, useInView } from "framer-motion";
+import { ExternalLink, ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 interface Product {
   id: string
@@ -55,9 +54,7 @@ export default function BrandHighlightProducts({
     fetchBrandProducts()
   }, [brandName])
 
-  const formatPrice = (cents: number): string => {
-    return `$${(cents / 100).toFixed(2)}`
-  }
+  const formatPrice = (price: number): string => `$${price.toFixed(2)}`;
 
   if (loading || brandProducts.length === 0) {
     return null
@@ -68,23 +65,27 @@ export default function BrandHighlightProducts({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, x: position === 'left' ? -50 : 50 }}
+      initial={{ opacity: 0, x: position === "left" ? -50 : 50 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.8 }}
-      className={`absolute ${position === 'left' ? '-left-24' : '-right-24'} top-1/2 -translate-y-1/2 hidden xl:block z-10`}
+      className={`absolute ${position === "left" ? "-left-24" : "-right-24"} top-1/2 -translate-y-1/2 hidden xl:block z-10`}
     >
-      <Card className={`w-72 bg-gray-900/90 backdrop-blur-sm border-2 hover:border-opacity-100 transition-all duration-300 group overflow-hidden ${brandColor} shadow-2xl`}>
+      <Card
+        className={`w-72 bg-gray-900/90 backdrop-blur-sm border-2 hover:border-opacity-100 transition-all duration-300 group overflow-hidden ${brandColor} shadow-2xl`}
+      >
         <div className="relative aspect-square">
           <Image
-            src={product.images[0]?.url || '/placeholder-product.jpg'}
+            src={product.images[0]?.url || "/placeholder-product.jpg"}
             alt={product.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          
-          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${brandColor.replace('border-', '')} text-white`}>
+
+          <Badge
+            className={`absolute top-3 left-3 bg-gradient-to-r ${brandColor.replace("border-", "")} text-white`}
+          >
             {brandName}
           </Badge>
 
@@ -93,10 +94,15 @@ export default function BrandHighlightProducts({
               {product.title}
             </div>
             <div className="text-gray-200 text-sm mb-2 line-clamp-2">
-              {product.description}
+              {product.description?.slice(0, 120)}
+              {product.description && product.description.length > 120
+                ? "…"
+                : ""}
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-cyan-400 font-bold text-xl">{formatPrice(product.price)}</span>
+              <span className="text-cyan-400 font-bold text-xl">
+                {formatPrice(product.price)}
+              </span>
               <Badge className="bg-green-500 text-white text-xs">
                 {product.status}
               </Badge>
@@ -106,19 +112,19 @@ export default function BrandHighlightProducts({
 
         <CardContent className="p-4">
           <div className="flex space-x-2">
-            <Button 
+            <Button
               size="sm"
-              className={`flex-1 bg-gradient-to-r ${brandColor.replace('border-', '')} hover:opacity-90 text-white`}
-              onClick={() => window.open(product.printify_url, '_blank')}
+              className={`flex-1 bg-gradient-to-r ${brandColor.replace("border-", "")} hover:opacity-90 text-white`}
+              onClick={() => window.open(product.printify_url, "_blank")}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
               Shop Now
             </Button>
-            <Button 
+            <Button
               size="sm"
               variant="outline"
               className="border-gray-600 text-gray-300 hover:bg-gray-800"
-              onClick={() => window.open(product.printify_url, '_blank')}
+              onClick={() => window.open(product.printify_url, "_blank")}
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
@@ -126,5 +132,5 @@ export default function BrandHighlightProducts({
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

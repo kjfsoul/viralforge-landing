@@ -1,5 +1,5 @@
-import { ProductsService } from "@/lib/products-service";
 import { getPrintifyProductService } from "@/lib/printify-product-service";
+import { ProductsService } from "@/lib/products-service";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -18,25 +18,34 @@ export async function GET(request: NextRequest) {
     // Get products service instance
     const productsService = ProductsService.getInstance();
 
+    // If caller requests live refresh, pull from Printify directly
+    const live = searchParams.get("live") === "true";
+
     // Get filtered products
-    const products = await productsService.getProducts({
-      featured,
-      brand: brand || undefined,
-      category: category || undefined,
-      context: context || undefined,
-      limit: explicitLimit,
-    });
+    const products = live
+      ? await productsService.refreshFromPrintify()
+      : await productsService.getProducts({
+          featured,
+          brand: brand || undefined,
+          category: category || undefined,
+          context: context || undefined,
+          limit: explicitLimit,
+        });
 
     // If sync_printify is requested, sync products to Printify
     if (syncPrintify) {
       try {
         const printifyService = getPrintifyProductService();
         const shops = await printifyService.getShops();
-        
+
         if (shops.length > 0) {
           const defaultShopId = shops[0].id;
-          const { PRINTIFY_BLUEPRINTS, PRINTIFY_PRINT_PROVIDERS, PRINTIFY_VARIANTS } = await import('@/lib/printify-config');
-          
+          const {
+            PRINTIFY_BLUEPRINTS,
+            PRINTIFY_PRINT_PROVIDERS,
+            PRINTIFY_VARIANTS,
+          } = await import("@/lib/printify-config");
+
           // Sync products to Printify
           const syncResults = await printifyService.syncProducts(
             products,
@@ -45,11 +54,11 @@ export async function GET(request: NextRequest) {
             PRINTIFY_PRINT_PROVIDERS.GILDAN,
             PRINTIFY_VARIANTS.TSHIRT_M
           );
-          
-          console.log('Printify sync results:', syncResults);
+
+          console.log("Printify sync results:", syncResults);
         }
       } catch (printifyError) {
-        console.warn('Printify sync failed:', printifyError);
+        console.warn("Printify sync failed:", printifyError);
         // Continue with normal response even if Printify sync fails
       }
     }
@@ -57,7 +66,7 @@ export async function GET(request: NextRequest) {
     // Determine limit for response
     const limit = explicitLimit ?? (featured ? 12 : context ? 6 : 50);
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       success: true,
       data: products.slice(0, limit),
       total: products.length,
@@ -65,6 +74,12 @@ export async function GET(request: NextRequest) {
       context: context || "general",
       printify_synced: syncPrintify,
     });
+    // Cache for 5 minutes at the edge/CDN; allow stale-while-revalidate
+    res.headers.set(
+      "Cache-Control",
+      "public, s-maxage=300, stale-while-revalidate=60"
+    );
+    return res;
   } catch (error) {
     console.error("Products API error:", error);
     return NextResponse.json(

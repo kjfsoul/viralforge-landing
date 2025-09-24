@@ -1,13 +1,22 @@
 
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { ExternalLink, Star, Music, Gift, Sparkles, Instagram, Twitter } from 'lucide-react'
-import Image from 'next/image'
-import BrandHighlightProducts from './brand-highlight-products'
+import PrintifyProductCard from "@/components/printify-product-card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion, useInView } from "framer-motion";
+import {
+  ExternalLink,
+  Gift,
+  Instagram,
+  Music,
+  Sparkles,
+  Star,
+  Twitter,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import BrandHighlightProducts from "./brand-highlight-products";
 
 const brands = [
   {
@@ -63,13 +72,48 @@ const brands = [
   }
 ]
 
-export default function BrandSection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const [hoveredBrand, setHoveredBrand] = useState<number | null>(null)
+function BrandInlineProducts({ brand }: { brand: string }) {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `/api/products?brand=${encodeURIComponent(brand)}&limit=3&live=true`
+        );
+        const data = await res.json();
+        if (data?.success) setProducts(data.data || []);
+      } catch (e) {
+        console.warn("Failed to load brand products", brand, e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [brand]);
+
+  if (loading || products.length === 0) return null;
 
   return (
-    <section id="brands" className="py-20 bg-gradient-to-b from-black to-gray-900">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+      {products.map((p) => (
+        <PrintifyProductCard key={p.id} product={p} variant="featured" />
+      ))}
+    </div>
+  );
+}
+
+export default function BrandSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [hoveredBrand, setHoveredBrand] = useState<number | null>(null);
+
+  return (
+    <section
+      id="brands"
+      className="py-20 bg-gradient-to-b from-black to-gray-900"
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           ref={ref}
@@ -80,17 +124,19 @@ export default function BrandSection() {
         >
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Sparkles className="h-6 w-6 text-cyan-400 cosmic-text-glow" />
-            <span className="text-sm uppercase tracking-wider text-cyan-400 cosmic-text-glow">Three Cosmic Brands</span>
+            <span className="text-sm uppercase tracking-wider text-cyan-400 cosmic-text-glow">
+              Three Cosmic Brands
+            </span>
             <Sparkles className="h-6 w-6 text-purple-400 cosmic-text-glow" />
           </div>
-          
+
           <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
             Explore Our Universe
           </h2>
-          
+
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            Each brand channels the cosmic energy of 3I/Atlas in its own unique way, 
-            bringing you designs that are truly out of this world.
+            Each brand channels the cosmic energy of 3I/Atlas in its own unique
+            way, bringing you designs that are truly out of this world.
           </p>
         </motion.div>
 
@@ -101,100 +147,126 @@ export default function BrandSection() {
               initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.8, delay: index * 0.2 }}
-              className={`relative flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12`}
+              className="relative space-y-8"
             >
-              {/* Brand Highlight Product */}
-              <BrandHighlightProducts 
-                brandName={brand.name}
-                brandColor={brand.borderColor}
-                position={index % 2 === 0 ? 'left' : 'right'}
-              />
-              {/* Brand Image */}
-              <div className="flex-1">
-                <Card 
-                  className={`bg-gray-900/50 border-gray-700 overflow-hidden ${brand.hoverColor} hover:shadow-2xl transition-all duration-300 group`}
-                  onMouseEnter={() => setHoveredBrand(index)}
-                  onMouseLeave={() => setHoveredBrand(null)}
-                >
-                  <CardContent className="p-0">
-                    <div className="relative aspect-video">
-                      <Image
-                        src={brand.image}
-                        alt={`${brand.name} cosmic designs`}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <brand.icon className={`h-6 w-6 text-transparent bg-gradient-to-r ${brand.color} bg-clip-text`} />
-                          <span className={`text-sm font-medium bg-gradient-to-r ${brand.color} bg-clip-text text-transparent`}>
-                            {brand.subtitle}
-                          </span>
+              {/* Row 1: Brand Image and Description side by side */}
+              <div
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
+                  index % 2 === 0
+                    ? ""
+                    : "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
+                }`}
+              >
+                {/* Brand Highlight Product (floating badge card) */}
+                <BrandHighlightProducts
+                  brandName={brand.name}
+                  brandColor={brand.borderColor}
+                  position={index % 2 === 0 ? "left" : "right"}
+                />
+
+                {/* Brand Image */}
+                <div className="w-full">
+                  <Card
+                    className={`bg-gray-900/50 border-gray-700 overflow-hidden ${brand.hoverColor} hover:shadow-2xl transition-all duration-300 group`}
+                    onMouseEnter={() => setHoveredBrand(index)}
+                    onMouseLeave={() => setHoveredBrand(null)}
+                  >
+                    <CardContent className="p-0">
+                      <div className="relative aspect-video">
+                        <Image
+                          src={brand.image}
+                          alt={`${brand.name} cosmic designs`}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <brand.icon
+                              className={`h-6 w-6 text-transparent bg-gradient-to-r ${brand.color} bg-clip-text`}
+                            />
+                            <span
+                              className={`text-sm font-medium bg-gradient-to-r ${brand.color} bg-clip-text text-transparent`}
+                            >
+                              {brand.subtitle}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Brand Content */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-3xl md:text-4xl font-bold mb-4 crystal-text">
+                      {brand.name}
+                    </h3>
+                    <p className="text-lg text-gray-300 leading-relaxed">
+                      {brand.description}
+                    </p>
+                  </div>
+
+                  {/* Features */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {brand.features.map((feature, featureIndex) => (
+                      <div
+                        key={featureIndex}
+                        className="flex items-center space-x-2"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full bg-gradient-to-r ${brand.color}`}
+                        />
+                        <span className="text-sm text-gray-400">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Website and Social Links */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={() => window.open(brand.website, "_blank")}
+                      className={`bg-gradient-to-r ${brand.color} hover:opacity-90 text-white rounded-full group flex-1`}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+                      Visit Website
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        window.open(brand.social.instagram, "_blank")
+                      }
+                      variant="outline"
+                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                    >
+                      <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                    </Button>
+                    <Button
+                      onClick={() => window.open(brand.social.tiktok, "_blank")}
+                      variant="outline"
+                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                    >
+                      <Music className="h-4 w-4 group-hover:bounce transition-transform" />
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        window.open(brand.social.twitter, "_blank")
+                      }
+                      variant="outline"
+                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                    >
+                      <Twitter className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              {/* Brand Content */}
-              <div className="flex-1 space-y-6">
-                <div>
-                  <h3 className="text-3xl md:text-4xl font-bold mb-4 crystal-text">
-                    {brand.name}
-                  </h3>
-                  <p className="text-lg text-gray-300 leading-relaxed">
-                    {brand.description}
-                  </p>
-                </div>
-
-                {/* Features */}
-                <div className="grid grid-cols-2 gap-3">
-                  {brand.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${brand.color}`} />
-                      <span className="text-sm text-gray-400">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Website and Social Links */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    onClick={() => window.open(brand.website, '_blank')}
-                    className={`bg-gradient-to-r ${brand.color} hover:opacity-90 text-white rounded-full group flex-1`}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
-                    Visit Website
-                  </Button>
-                  <Button 
-                    onClick={() => window.open(brand.social.instagram, '_blank')}
-                    variant="outline"
-                    className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                  >
-                    <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  </Button>
-                  <Button 
-                    onClick={() => window.open(brand.social.tiktok, '_blank')}
-                    variant="outline"
-                    className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                  >
-                    <Music className="h-4 w-4 group-hover:bounce transition-transform" />
-                  </Button>
-                  <Button 
-                    onClick={() => window.open(brand.social.twitter, '_blank')}
-                    variant="outline"
-                    className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                  >
-                    <Twitter className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                  </Button>
-                </div>
-              </div>
+              {/* Row 2: Exactly 3 products beneath, in 3 columns */}
+              <BrandInlineProducts brand={brand.name} />
             </motion.div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

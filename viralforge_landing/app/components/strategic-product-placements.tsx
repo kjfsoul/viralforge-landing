@@ -1,91 +1,97 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Sparkles, ExternalLink, ShoppingCart, Clock } from 'lucide-react'
-import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Clock, ExternalLink, ShoppingCart, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 interface Product {
-  id: string
-  title: string
-  description: string
-  brand: string
-  category: string
-  price: number
-  images: Array<{ id: string; url: string }>
-  printify_url: string
-  status: string
-  urgent: boolean
-  featured: boolean
-  tags: string[]
+  id: string;
+  title: string;
+  description: string;
+  brand: string;
+  category: string;
+  price: number;
+  images: Array<{ id: string; url: string }>;
+  printify_url: string;
+  status: string;
+  urgent: boolean;
+  featured: boolean;
+  tags: string[];
 }
 
 interface StrategicPlacementProps {
-  context: 'hero' | 'oracle' | 'trajectory' | 'celebration' | 'rave'
-  maxProducts?: number
-  className?: string
+  context: "hero" | "oracle" | "trajectory" | "celebration" | "rave";
+  maxProducts?: number;
+  className?: string;
 }
 
-export function StrategicProductPlacement({ context, maxProducts = 3, className = '' }: StrategicPlacementProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+export function StrategicProductPlacement({
+  context,
+  maxProducts = 3,
+  className = "",
+}: StrategicPlacementProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`/api/products?context=${context}&featured=true`)
-        const data = await response.json()
+        const response = await fetch(
+          `/api/products?context=${context}&featured=true`
+        );
+        const data = await response.json();
         if (data.success) {
-          setProducts(data.data.slice(0, maxProducts))
+          setProducts(data.data.slice(0, maxProducts));
         }
       } catch (error) {
-        console.error('Error fetching products:', error)
+        console.error("Error fetching products:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProducts()
-  }, [context, maxProducts])
+    fetchProducts();
+  }, [context, maxProducts]);
 
   const contextConfig = {
     hero: {
-      title: '🔥 Mars Flyby Exclusives',
-      subtitle: 'Limited time commemorative collection',
-      bgGradient: 'from-purple-900/20 to-pink-900/20',
-      borderColor: 'border-purple-500/30'
+      title: "🔥 Mars Flyby Exclusives",
+      subtitle: "Limited time commemorative collection",
+      bgGradient: "from-purple-900/20 to-pink-900/20",
+      borderColor: "border-purple-500/30",
     },
     oracle: {
-      title: '🔮 Mystical Oracle Collection',
-      subtitle: 'Channel cosmic wisdom with these sacred designs',
-      bgGradient: 'from-violet-900/20 to-purple-900/20',
-      borderColor: 'border-violet-500/30'
+      title: "🔮 Mystical Oracle Collection",
+      subtitle: "Channel cosmic wisdom with these sacred designs",
+      bgGradient: "from-violet-900/20 to-purple-900/20",
+      borderColor: "border-violet-500/30",
     },
     trajectory: {
-      title: '🚀 Hyperbolic Journey Collection',
-      subtitle: 'Track 3I/Atlas\'s path through our solar system',
-      bgGradient: 'from-cyan-900/20 to-blue-900/20',
-      borderColor: 'border-cyan-500/30'
+      title: "🚀 Hyperbolic Journey Collection",
+      subtitle: "Track 3I/Atlas's path through our solar system",
+      bgGradient: "from-cyan-900/20 to-blue-900/20",
+      borderColor: "border-cyan-500/30",
     },
     celebration: {
-      title: '🎉 Cosmic Celebration Collection',
-      subtitle: 'Make every moment interstellar',
-      bgGradient: 'from-orange-900/20 to-red-900/20',
-      borderColor: 'border-orange-500/30'
+      title: "🎉 Cosmic Celebration Collection",
+      subtitle: "Make every moment interstellar",
+      bgGradient: "from-orange-900/20 to-red-900/20",
+      borderColor: "border-orange-500/30",
     },
     rave: {
-      title: '⚡ Festival Cosmic Collection',
-      subtitle: 'EDM designs from another galaxy',
-      bgGradient: 'from-green-900/20 to-emerald-900/20',
-      borderColor: 'border-green-500/30'
-    }
-  }
+      title: "⚡ Festival Cosmic Collection",
+      subtitle: "EDM designs from another galaxy",
+      bgGradient: "from-green-900/20 to-emerald-900/20",
+      borderColor: "border-green-500/30",
+    },
+  };
 
-  const config = contextConfig[context]
+  const config = contextConfig[context];
 
   if (loading) {
     return (
@@ -100,27 +106,33 @@ export function StrategicProductPlacement({ context, maxProducts = 3, className 
           ))}
         </div>
       </div>
-    )
+    );
   }
 
-  if (products.length === 0) return null
+  if (products.length === 0) return null;
 
   return (
-    <motion.div 
+    <motion.div
       className={`${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <Card className={`bg-gradient-to-br ${config.bgGradient} ${config.borderColor} backdrop-blur-md`}>
+      <Card
+        className={`bg-gradient-to-br ${config.bgGradient} ${config.borderColor} backdrop-blur-md`}
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-white mb-1">{config.title}</h3>
+              <h3 className="text-xl font-bold text-white mb-1">
+                {config.title}
+              </h3>
               <p className="text-sm text-gray-400">{config.subtitle}</p>
             </div>
-            <Button 
-              onClick={() => window.open('https://3iatlas.printify.me', '_blank')}
+            <Button
+              onClick={() =>
+                window.open("https://3iatlas.printify.me", "_blank")
+              }
               variant="outline"
               size="sm"
               className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
@@ -141,7 +153,7 @@ export function StrategicProductPlacement({ context, maxProducts = 3, className 
                   <CardContent className="p-0">
                     <div className="relative aspect-square overflow-hidden rounded-t-lg">
                       <Image
-                        src={product.images[0]?.url || '/placeholder.jpg'}
+                        src={product.images[0]?.url || "/placeholder.jpg"}
                         alt={product.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -156,21 +168,34 @@ export function StrategicProductPlacement({ context, maxProducts = 3, className 
                         {product.brand}
                       </Badge>
                     </div>
-                    
+
                     <div className="p-4">
                       <h4 className="font-semibold text-white text-sm mb-2 line-clamp-2">
                         {product.title}
                       </h4>
                       <p className="text-xs text-gray-400 mb-3 line-clamp-2">
-                        {product.description}
+                        {(() => {
+                          const text = (product.description || "")
+                            .replace(/\s+/g, " ")
+                            .trim();
+                          const parts = text
+                            .split(/(?<=[.!?])\s+/)
+                            .slice(0, 2)
+                            .join(" ");
+                          return parts.length > 140
+                            ? parts.slice(0, 140).replace(/\s\S*$/, "") + "…"
+                            : parts;
+                        })()}
                       </p>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-cyan-400">
-                          ${(product.price / 100).toFixed(2)}
+                          ${product.price.toFixed(2)}
                         </span>
-                        <Button 
-                          onClick={() => window.open(product.printify_url, '_blank')}
+                        <Button
+                          onClick={() =>
+                            window.open(product.printify_url, "_blank")
+                          }
                           size="sm"
                           className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white text-xs"
                         >
@@ -178,7 +203,7 @@ export function StrategicProductPlacement({ context, maxProducts = 3, className 
                           Buy Now
                         </Button>
                       </div>
-                      
+
                       {product.status && (
                         <p className="text-xs text-orange-400 mt-2 font-medium">
                           {product.status}
@@ -192,18 +217,23 @@ export function StrategicProductPlacement({ context, maxProducts = 3, className 
           </div>
 
           <div className="mt-6 text-center">
-            <Button 
-              onClick={() => window.open('https://3iatlas.printify.me', '_blank')}
+            <Button
+              onClick={() =>
+                window.open("https://3iatlas.printify.me", "_blank")
+              }
               className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white px-8 py-3 rounded-full group"
             >
               <Sparkles className="mr-2 h-4 w-4 group-hover:animate-spin" />
-              Shop Full {config.title.replace(/🔥|🔮|🚀|🎉|⚡/g, '').trim()} Collection
+              Shop Full {config.title
+                .replace(/🔥|🔮|🚀|🎉|⚡/g, "")
+                .trim()}{" "}
+              Collection
             </Button>
           </div>
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }
 
 // Brand-specific showcases
