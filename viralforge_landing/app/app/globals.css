@@ -1,0 +1,133 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 280 100% 70%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 200 100% 60%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 3.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 3.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 280 100% 70%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Enhanced text highlighting - no blur */
+.cosmic-text-glow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.3);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.neon-outline {
+  -webkit-text-stroke: 1px rgba(139, 92, 246, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.crystal-text {
+  background: linear-gradient(45deg, #8b5cf6, #06b6d4, #ec4899);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s ease-in-out infinite;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.solid-glow {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.7), 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-weight: 700;
+}
+
+.neon-border {
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Cosmic background animation */
+@keyframes cosmic-drift {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-10px) translateY(-5px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.cosmic-drift {
+  animation: cosmic-drift 20s ease-in-out infinite;
+}
+
+/* Parallax effect */
+.parallax {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Number counting animation */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-up {
+  animation: countUp 0.6s ease-out forwards;
+}
+
+/* Hover effects */
+.hover-neon:hover {
+  @apply neon-border;
+  transition: all 0.3s ease;
+}
+
+/* Scroll animations */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease;
+}
+
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
