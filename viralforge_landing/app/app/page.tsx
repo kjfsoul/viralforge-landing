@@ -1,25 +1,42 @@
 
-// import products from '@/data/products.json'; // Removed - using API instead
-import { Metadata } from 'next'
-import EnhancedHeroSection from '@/components/enhanced-hero-section'
-import HeroProductShowcase from '@/components/hero-product-showcase'
-import BrandSection from '@/components/brand-section'
-import NewsSection from '@/components/news-section'
-import OracleSection from '@/components/oracle-section'
-import AtlasTrajectorySimulator from '@/components/atlas-trajectory-simulator'
-import EnhancedProductShowcase from '@/components/enhanced-product-showcase'
-import EnhancedFAQSection from '@/components/enhanced-faq-section'
-import CTASection from '@/components/cta-section'
-import Header from '@/components/header'
-import Footer from '@/components/footer'
-import { 
+import AtlasTrajectorySimulator from "@/components/atlas-trajectory-simulator";
+import BrandSection from "@/components/brand-section";
+import CTASection from "@/components/cta-section";
+import EnhancedFAQSection from "@/components/enhanced-faq-section";
+import EnhancedHeroSection from "@/components/enhanced-hero-section";
+import EnhancedProductShowcase from "@/components/enhanced-product-showcase";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
+import HeroProductShowcase from "@/components/hero-product-showcase";
+import {
+  FloatingProductRecommendation,
+  InlineProductWidget,
+} from "@/components/inline-product-widgets";
+import NewsSection from "@/components/news-section";
+import OracleSection from "@/components/oracle-section";
+import PrintifyProductCard from "@/components/printify-product-card";
+import {
   HeroProductShowcase as StrategicHeroShowcase,
-  MysticArcanaShowcase,
-  EDMShuffleShowcase,
-  BirthdayGenShowcase,
-  TrajectoryProductShowcase
-} from '@/components/strategic-product-placements'
-import { FloatingProductRecommendation, InlineProductWidget } from '@/components/inline-product-widgets'
+  TrajectoryProductShowcase,
+} from "@/components/strategic-product-placements";
+import { Metadata } from "next";
+
+// Server-side function to fetch products
+async function getProducts() {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3002"}/api/products`,
+      {
+        cache: "no-store", // Always fetch fresh data
+      }
+    );
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    return [];
+  }
+}
 
 export const metadata: Metadata = {
   title: '3I/Atlas Historic Mars Flyby | Cosmic Collection Live Now',
@@ -128,19 +145,29 @@ const structuredData = {
   }
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch products from API
+  const allProducts = await getProducts();
+
+  // Group products by brand for backward compatibility
+  const products = {
+    "3i_atlas": allProducts.filter((p: any) => p.brand === "3I/Atlas"),
+    mystic_arcana: allProducts.filter((p: any) => p.brand === "Mystic Arcana"),
+    edm_shuffle: allProducts.filter((p: any) => p.brand === "EDM Shuffle"),
+    birthday_gen: allProducts.filter((p: any) => p.brand === "BirthdayGen"),
+  };
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData)
+          __html: JSON.stringify(structuredData),
         }}
       />
       <main className="min-h-screen bg-black text-white relative">
         <Header />
         <EnhancedHeroSection />
-        
+
         {/* Strategic Hero Product Placement - Mars Flyby Exclusives */}
         <section className="py-12 px-4">
           <div className="max-w-6xl mx-auto">
@@ -149,8 +176,8 @@ export default function HomePage() {
         </section>
 
         <HeroProductShowcase />
-        <NewsSection />
-        
+        <NewsSection products={allProducts} />
+
         {/* Inline Product Widget after News */}
         <section className="py-8 px-4">
           <div className="max-w-4xl mx-auto">
@@ -163,69 +190,137 @@ export default function HomePage() {
         {/* Mystic Arcana Products */}
         <section className="py-16 px-4 bg-gradient-to-b from-purple-900/10 to-transparent">
           <div className="max-w-6xl mx-auto space-y-16">
-            <h2 className="text-3xl font-bold text-center">Mystic Arcana</h2>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Mystic Arcana
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Cosmic tarot, astrology, and mystical designs inspired by the
+                3I/Atlas journey
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {products.mystic_arcana.slice(0, 3).map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover mb-4" />
-                  <h3 className="text-xl font-bold">{product.title}</h3>
-                  <p className="text-gray-400">{product.description}</p>
-                </div>
+              {products.mystic_arcana.slice(0, 3).map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="featured"
+                />
               ))}
             </div>
+            {products.mystic_arcana.length > 3 && (
+              <div className="text-center">
+                <a
+                  href="https://mysticarcana.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  View All Mystic Arcana Products
+                </a>
+              </div>
+            )}
           </div>
         </section>
 
         {/* EDM Shuffle Products */}
         <section className="py-16 px-4 bg-gradient-to-b from-blue-900/10 to-transparent">
           <div className="max-w-6xl mx-auto space-y-16">
-            <h2 className="text-3xl font-bold text-center">EDM Shuffle</h2>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white mb-4">
+                EDM Shuffle
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Electronic dance music and cosmic rave designs for the
+                interstellar party
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {products.edm_shuffle.slice(0, 3).map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover mb-4" />
-                  <h3 className="text-xl font-bold">{product.title}</h3>
-                  <p className="text-gray-400">{product.description}</p>
-                </div>
+              {products.edm_shuffle.slice(0, 3).map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="featured"
+                />
               ))}
             </div>
+            {products.edm_shuffle.length > 3 && (
+              <div className="text-center">
+                <a
+                  href="https://edmshuffle.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  View All EDM Shuffle Products
+                </a>
+              </div>
+            )}
           </div>
         </section>
 
         {/* BirthdayGen Products */}
         <section className="py-16 px-4 bg-gradient-to-b from-pink-900/10 to-transparent">
           <div className="max-w-6xl mx-auto space-y-16">
-            <h2 className="text-3xl font-bold text-center">BirthdayGen</h2>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white mb-4">
+                BirthdayGen
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Cosmic celebration and interstellar birthday designs for special
+                moments
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {products.birthday_gen.slice(0, 3).map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover mb-4" />
-                  <h3 className="text-xl font-bold">{product.title}</h3>
-                  <p className="text-gray-400">{product.description}</p>
-                </div>
+              {products.birthday_gen.slice(0, 3).map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="featured"
+                />
               ))}
             </div>
+            {products.birthday_gen.length > 3 && (
+              <div className="text-center">
+                <a
+                  href="https://birthdaygen.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  View All BirthdayGen Products
+                </a>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* 3iAtlas Products */}
+        {/* 3iAtlas Featured Products - Sprinkled throughout */}
         <section className="py-16 px-4">
           <div className="max-w-6xl mx-auto space-y-16">
-            <h2 className="text-3xl font-bold text-center">3iAtlas Collection</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {products["3i_atlas"].map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover mb-4" />
-                  <h3 className="text-xl font-bold">{product.title}</h3>
-                  <p className="text-gray-400">{product.description}</p>
-                </div>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white mb-4">
+                3I/Atlas Collection
+              </h2>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                Exclusive commemorative designs celebrating the historic Mars
+                flyby
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {products["3i_atlas"].slice(0, 3).map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="featured"
+                />
               ))}
             </div>
           </div>
         </section>
 
-        <OracleSection products={products["3i_atlas"].slice(6, 9)} />
-        
+        <OracleSection products={products["3i_atlas"].slice(3, 6)} />
+
         {/* Oracle-Related Product Showcase */}
         <section className="py-12 px-4">
           <div className="max-w-4xl mx-auto">
@@ -233,8 +328,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        <AtlasTrajectorySimulator products={products["3i_atlas"].slice(9, 12)} />
-        
+        {/* More 3iAtlas Products - Strategic Placement */}
+        <section className="py-16 px-4 bg-gradient-to-b from-gray-900/20 to-transparent">
+          <div className="max-w-6xl mx-auto">
+            <h3 className="text-2xl font-bold text-center text-white mb-8">
+              Mars Flyby Exclusives
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products["3i_atlas"].slice(6, 10).map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="compact"
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <AtlasTrajectorySimulator
+          products={products["3i_atlas"].slice(10, 13)}
+        />
+
         {/* Trajectory Product Showcase */}
         <section className="py-12 px-4">
           <div className="max-w-6xl mx-auto">
@@ -244,28 +359,64 @@ export default function HomePage() {
 
         <EnhancedProductShowcase />
 
-        {/* Remaining 3iAtlas Products */}
-        <section className="py-16 px-4">
-          <div className="max-w-6xl mx-auto space-y-16">
-            <h2 className="text-3xl font-bold text-center">More from 3iAtlas</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {products["3i_atlas"].slice(12).map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover mb-4" />
-                  <h3 className="text-xl font-bold">{product.title}</h3>
-                  <p className="text-gray-400">{product.description}</p>
-                </div>
+        {/* Full 3iAtlas Store - Complete Collection */}
+        <section className="py-20 px-4 bg-gradient-to-b from-gray-900/30 to-black">
+          <div className="max-w-7xl mx-auto space-y-16">
+            <div className="text-center">
+              <h2 className="text-5xl font-bold text-white mb-6">
+                Complete 3I/Atlas Store
+              </h2>
+              <p className="text-gray-400 text-xl max-w-3xl mx-auto mb-8">
+                Explore our entire collection of commemorative designs
+                celebrating the historic Mars flyby. From apparel to home decor,
+                find the perfect way to commemorate this once-in-a-lifetime
+                cosmic event.
+              </p>
+              <div className="flex justify-center gap-4 mb-12">
+                <a
+                  href="https://3iatlas.printify.me"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg text-lg font-bold transition-all duration-300 hover:scale-105 transform"
+                >
+                  Visit Full Store
+                </a>
+                <a
+                  href="#newsletter"
+                  className="bg-gray-700 hover:bg-gray-600 text-white px-8 py-4 rounded-lg text-lg font-medium transition-colors"
+                >
+                  Get Updates
+                </a>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {products["3i_atlas"].map((product: any) => (
+                <PrintifyProductCard
+                  key={product.id}
+                  product={product}
+                  variant="default"
+                />
               ))}
             </div>
+
+            {products["3i_atlas"].length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-gray-400 text-lg mb-4">
+                  Loading products from Printify...
+                </div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+              </div>
+            )}
           </div>
         </section>
         <EnhancedFAQSection />
         <CTASection />
         <Footer />
-        
+
         {/* Floating Product Recommendation */}
         <FloatingProductRecommendation />
       </main>
     </>
-  )
+  );
 }
