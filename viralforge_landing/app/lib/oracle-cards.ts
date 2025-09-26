@@ -1,3 +1,4 @@
+import { config, getHeroImageUrl, getOracleImageUrls, getEnhancedFaqImageUrl, getProductShowcaseImageUrls, getFaqImageUrl } from "@/lib/config"
 
 export interface OracleCard {
   id: number
@@ -16,7 +17,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "3I/Atlas Arrives",
     meaning: "A profound message from the cosmos is coming your way. Like 3I/Atlas itself, unexpected opportunities are approaching your life from vast distances.",
     keywords: ["arrival", "cosmic message", "unexpected opportunity", "ancient wisdom"],
-    image: "https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png",
+    image: "getHeroImageUrl()",
     message_template: "{{name}}, as someone focused on {{current_focus}} with {{energy_level}} energy, the cosmos sends you this message: The universe has been preparing something special for you, just as it guided 3I/Atlas across impossible distances. Your birth month of {{birth_month}} aligns with cosmic forces now stirring."
   },
   {
@@ -25,7 +26,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Ancient Pathways",
     meaning: "Your life's journey mirrors that of ancient travelers crossing impossible distances. Trust the path, even when you cannot see the destination.",
     keywords: ["journey", "trust", "ancient wisdom", "navigation"],
-    image: "https://cdn.abacus.ai/images/a00c4213-3b11-42a4-b4b7-2cbd98ba6042.png",
+    image: "getOracleImageUrls()[1]",
     message_template: "{{name}}, your {{energy_level}} energy and focus on {{current_focus}} reveals you're on an epic journey. Those born in {{birth_month}} carry the navigator's spirit - trust your inner compass as 3I/Atlas trusted its trajectory through the void."
   },
   {
@@ -34,7 +35,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Close Approach",
     meaning: "You are approaching a critical moment in your life. Like 3I/Atlas passing Mars, this is your time to shine brightest.",
     keywords: ["threshold", "critical moment", "brilliance", "visibility"],
-    image: "https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png",
+    image: "getOracleImageUrls()[2]",
     message_template: "{{name}}, with your {{energy_level}} energy focused on {{current_focus}}, you're approaching your 'Mars moment.' Your {{birth_month}} birth timing suggests you naturally understand when to emerge from the shadows and claim your moment of brilliance."
   },
   {
@@ -43,7 +44,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Cosmic Acceleration",
     meaning: "Unseen forces are propelling you toward your destiny. Like solar winds shaping a comet's tail, invisible energies are working in your favor.",
     keywords: ["acceleration", "unseen forces", "destiny", "cosmic support"],
-    image: "https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png",
+    image: "getHeroImageUrl()",
     message_template: "{{name}}, your focus on {{current_focus}} combined with {{energy_level}} energy means you're being accelerated by forces you can't see. {{birth_month}} births like yours are especially sensitive to these cosmic currents - surrender to the acceleration."
   },
   {
@@ -52,7 +53,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Distant Origins",
     meaning: "Your current situation has roots in the distant past. Ancient patterns are playing out in your modern life.",
     keywords: ["origins", "ancient patterns", "echoes", "past influences"],
-    image: "https://cdn.abacus.ai/images/a00c4213-3b11-42a4-b4b7-2cbd98ba6042.png",
+    image: "getOracleImageUrls()[1]",
     message_template: "{{name}}, as someone with {{energy_level}} energy working on {{current_focus}}, you're experiencing echoes from your past. Those born in {{birth_month}} often find their current challenges are ancient patterns seeking resolution - the answer lies in your deepest memories."
   },
   {
@@ -61,7 +62,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Closest Approach",
     meaning: "This is your moment of maximum power and visibility. Like 3I/Atlas at perihelion, you're at your brightest and most influential.",
     keywords: ["maximum power", "visibility", "influence", "peak moment"],
-    image: "https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png",
+    image: "getOracleImageUrls()[2]",
     message_template: "{{name}}, your {{energy_level}} energy focused on {{current_focus}} indicates you're entering your perihelion moment. {{birth_month}} souls like you instinctively know when to burn brightest - this is your time to be seen and make your mark."
   },
   {
@@ -70,7 +71,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "No Return Journey",
     meaning: "You're on a path of no return - and that's exactly where you need to be. Some journeys only go forward, transforming everything in their wake.",
     keywords: ["no return", "transformation", "forward momentum", "evolution"],
-    image: "https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png",
+    image: "getHeroImageUrl()",
     message_template: "{{name}}, your {{energy_level}} energy and dedication to {{current_focus}} shows you're on a hyperbolic path - there's no going back to who you were. {{birth_month}} births often struggle with this, but your soul chose this one-way transformation for profound reasons."
   },
   {
@@ -79,7 +80,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Sacred Fragments",
     meaning: "What appears broken or scattered contains hidden treasures. Your challenges are leaving behind gifts for others to find.",
     keywords: ["fragments", "hidden treasures", "challenges as gifts", "legacy"],
-    image: "https://cdn.abacus.ai/images/a00c4213-3b11-42a4-b4b7-2cbd98ba6042.png",
+    image: "getOracleImageUrls()[1]",
     message_template: "{{name}}, while you focus on {{current_focus}} with {{energy_level}} energy, know that your struggles are creating cosmic debris - valuable fragments that will help others. {{birth_month}} souls are natural alchemists, transforming pain into wisdom."
   },
   {
@@ -88,7 +89,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Being Witnessed",
     meaning: "You are being observed and studied by forces greater than yourself. Your journey matters to the cosmic story.",
     keywords: ["observation", "cosmic significance", "being seen", "universal importance"],
-    image: "https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png",
+    image: "getOracleImageUrls()[2]",
     message_template: "{{name}}, your {{energy_level}} approach to {{current_focus}} is being witnessed by the universe itself. {{birth_month}} brings natural intuition about when you're being observed - trust that your every move has cosmic significance right now."
   },
   {
@@ -97,7 +98,7 @@ export const ORACLE_CARDS: OracleCard[] = [
     title: "Beyond the Solar System",
     meaning: "Your influence extends far beyond your current awareness. Like 3I/Atlas, you carry messages to realms you cannot yet imagine.",
     keywords: ["infinite influence", "beyond awareness", "cosmic messenger", "far-reaching impact"],
-    image: "https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png",
+    image: "getHeroImageUrl()",
     message_template: "{{name}}, your {{energy_level}} energy focused on {{current_focus}} creates ripples across dimensions. {{birth_month}} births are natural cosmic ambassadors - your current actions will influence realities you cannot yet perceive."
   }
 ]

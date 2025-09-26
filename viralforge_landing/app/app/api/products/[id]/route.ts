@@ -1,14 +1,12 @@
-import { ProductsService } from "@/lib/products-service";
 import { NextRequest, NextResponse } from "next/server";
+import { getProductByIdFromAnyShop } from "@/lib/printify-live";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const productsService = ProductsService.getInstance();
-    const all = await productsService.getProducts();
-    const product = all.find((p) => String(p.id) === decodeURIComponent(params.id));
+    const product = await getProductByIdFromAnyShop(decodeURIComponent(params.id))
     if (!product) {
       return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
     }

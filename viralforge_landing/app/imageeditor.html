@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Code: POD Prompt & Image Generator</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Cooper+Black&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400..900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-anton { font-family: 'Anton', sans-serif; }
+        .font-cooper-black { font-family: 'Cooper Black', serif; }
+        .font-bangers { font-family: 'Bangers', cursive; }
+        .font-press-start { font-family: 'Press Start 2P', cursive; }
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .shimmer-gradient {
+            background: linear-gradient(110deg, #1e1b4b 0%, #312e81 25%, #4f46e5 50%, #312e81 75%, #1e1b4b 100%);
+            background-size: 200% 100%;
+            animation: shimmer 5s linear infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #editor-canvas.editing { cursor: none; }
+        textarea:focus { outline: none; }
+        #custom-cursor {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            border: 2px solid white;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: width 0.1s ease, height 0.1s ease;
+            transform: translate(-50%, -50%); /* Center the cursor on the mouse pointer */
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 antialiased">
+    <div id="custom-cursor"></div>
+    <div class="min-h-screen w-full p-4 md:p-8 flex flex-col items-center">
+
+        <header class="w-full max-w-4xl text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold orbitron text-indigo-400">Vibe Code</h1>
+            <p class="text-lg text-gray-400 mt-2">POD Prompt & Image Generator</p>
+        </header>
+
+        <div class="w-full max-w-4xl mb-6">
+            <label for="imageUpload" class="w-full block py-3 px-4 text-lg text-center font-semibold text-white bg-gray-700 hover:bg-gray-600 rounded-lg shadow-lg cursor-pointer transition">
+                Or Upload an Image to Edit & Describe
+            </label>
+            <input type="file" id="imageUpload" class="hidden" accept="image/*">
+        </div>
+
+        <main class="w-full max-w-4xl glass-effect rounded-2xl shadow-2xl p-6 md:p-8">
+            <div id="main-generator-inputs" class="space-y-6">
+                <div>
+                    <label for="scenario" class="block text-sm font-medium text-gray-300 mb-2">1. User Scenario</label>
+                    <div class="space-y-2 p-4 bg-gray-800/50 rounded-lg">
+                        <div class="flex gap-2">
+                            <input type="text" id="brainstorm-theme" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Enter a theme to get ideas...">
+                            <button id="brainstorm-btn" class="py-3 px-5 font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg whitespace-nowrap">✨ Brainstorm Ideas</button>
+                        </div>
+                        <div id="brainstorm-results" class="pt-2 flex flex-wrap gap-2"></div>
+                    </div>
+                    <textarea id="scenario" name="scenario" rows="3" class="w-full mt-2 bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500" placeholder="e.g., funny alien dancing on a farm, parody of Old MacDonald"></textarea>
+                </div>
+
+                <div>
+                     <label class="block text-sm font-medium text-gray-300 mb-2">2. Style Selector (10)</label>
+                     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div class="relative"><input type="radio" id="style-cartoon" name="style" value="bold cartoon graphic" class="peer sr-only" checked><label for="style-cartoon" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Cartoon</label></div>
+                        <div class="relative"><input type="radio" id="style-retro" name="style" value="vintage retro graphic" class="peer sr-only"><label for="style-retro" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Vintage</label></div>
+                        <div class="relative"><input type="radio" id="style-vaporwave" name="style" value="vaporwave aesthetic" class="peer sr-only"><label for="style-vaporwave" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Vaporwave</label></div>
+                        <div class="relative"><input type="radio" id="style-scifi" name="style" value="sci-fi" class="peer sr-only"><label for="style-scifi" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Sci-Fi</label></div>
+                        <div class="relative"><input type="radio" id="style-minimalist" name="style" value="minimalist vector" class="peer sr-only"><label for="style-minimalist" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Minimalist</label></div>
+                        <div class="relative"><input type="radio" id="style-psychedelic" name="style" value="psychedelic groovy" class="peer sr-only"><label for="style-psychedelic" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Psychedelic</label></div>
+                        <div class="relative"><input type="radio" id="style-kawaii" name="style" value="kawaii chibi" class="peer sr-only"><label for="style-kawaii" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Kawaii</label></div>
+                        <div class="relative"><input type="radio" id="style-watercolor" name="style" value="soft watercolor" class="peer sr-only"><label for="style-watercolor" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Watercolor</label></div>
+                        <div class="relative"><input type="radio" id="style-cyberpunk" name="style" value="cyberpunk neon" class="peer sr-only"><label for="style-cyberpunk" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Cyberpunk</label></div>
+                        <div class="relative"><input type="radio" id="style-deco" name="style" value="art deco" class="peer sr-only"><label for="style-deco" class="block w-full p-3 text-center bg-gray-800 border border-gray-600 rounded-lg cursor-pointer peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500 peer-checked:text-indigo-400 transition">Art Deco</label></div>
+                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">3. Typography & Text Options</label>
+                    <div class="space-y-4 p-4 bg-gray-800/50 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="font-family" class="text-xs text-gray-400">Font Family</label>
+                                <select id="font-family" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Cooper Black" class="font-cooper-black">Cooper Black</option>
+                                    <option value="Anton" class="font-anton">Anton</option>
+                                    <option value="Bangers" class="font-bangers">Bangers</option>
+                                    <option value="Orbitron" class="orbitron">Orbitron</option>
+                                    <option value="Press Start 2P" class="font-press-start">Press Start 2P</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="font-size" class="text-xs text-gray-400">Font Size</label>
+                                <select id="font-size" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-indigo-500">
+                                    <option value="tiny">Tiny</option>
+                                    <option value="small">Small</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="large">Large</option>
+                                    <option value="huge">Huge</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="font-color" class="text-xs text-gray-400">Font Color</label>
+                                <input type="color" id="font-color" value="#FFFFFF" class="w-full h-11 p-1 bg-gray-800 border border-gray-600 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+                        <div id="font-preview" class="p-2.5 rounded-lg bg-gray-900 text-center">Preview Text</div>
+                        <div class="flex flex-col md:flex-row gap-2 items-center">
+                            <input type="text" id="text-primary" class="flex-grow w-full md:w-auto bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Primary Text">
+                            <select id="pos-primary" class="w-full md:w-48 bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                                <option value="Top Arc" selected>Top Arc</option> <option value="Middle">Middle</option> <option value="Bottom Arc">Bottom Arc</option>
+                            </select>
+                        </div>
+                         <div class="flex flex-col md:flex-row gap-2 items-center">
+                            <input type="text" id="text-secondary" class="flex-grow w-full md:w-auto bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Secondary Text">
+                             <select id="pos-secondary" class="w-full md:w-48 bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                                 <option value="Bottom Arc" selected>Bottom Arc</option> <option value="Top Arc">Top Arc</option> <option value="Middle">Middle</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">4. Export Options</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-800/50 rounded-lg">
+                        <div>
+                            <label for="file-type" class="text-xs text-gray-400">File Type</label>
+                            <select id="file-type" class="export-option w-full bg-gray-800 border border-gray-600 rounded-lg p-2.5 text-white">
+                                <option value="Transparent PNG">Transparent PNG</option>
+                                <option value="JPEG">JPEG</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="dimensions" class="text-xs text-gray-400">Dimensions</label>
+                            <select id="dimensions" class="export-option w-full bg-gray-800 border border-gray-600 rounded-lg p-2.5 text-white">
+                                <option value="4500x5400 pixels (Apparel)">4500x5400px (Apparel)</option>
+                                <option value="5000x5000 pixels (Square)">5000x5000px (Square)</option>
+                                <option value="4800x3200 pixels (Landscape)">4800x3200px (Landscape)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="resolution" class="text-xs text-gray-400">Resolution</label>
+                            <select id="resolution" class="export-option w-full bg-gray-800 border border-gray-600 rounded-lg p-2.5 text-white">
+                                <option value="300 DPI (Print)">300 DPI (Print)</option>
+                                <option value="150 DPI (Web)">150 DPI (Web)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="w-full py-3 px-4 text-lg font-semibold text-white shimmer-gradient rounded-lg shadow-lg hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-indigo-500 transform hover:scale-105 duration-300">
+                    Generate POD-Ready Prompt
+                </button>
+            </div>
+
+            <div id="output-container" class="mt-8 border-t border-gray-700 pt-6 hidden">
+                <div id="prompt-generator-section">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-semibold text-gray-300">1. Image Generation Prompt (Editable)</h3>
+                        <button id="copyPromptBtn" class="text-sm bg-gray-700 hover:bg-indigo-600 text-white font-medium py-1 px-3 rounded-md transition">Copy</button>
+                    </div>
+                    <textarea id="prompt-output" rows="6" class="w-full bg-gray-900/80 border border-gray-600 rounded-lg p-4 text-gray-300 whitespace-pre-wrap focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <button id="generateImageBtn" class="w-full py-3 px-4 my-6 text-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg transform hover:scale-105">Generate Image with Imagen</button>
+                </div>
+                
+                <div id="image-preview-section" class="mb-6 hidden">
+                     <h3 class="text-lg font-semibold text-gray-300 mb-2">Image Preview</h3>
+                     <div class="w-full min-h-[300px] bg-gray-900/80 border border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center">
+                        <div id="loader" class="loader hidden"></div>
+                        <img id="generated-image" src="" alt="Generated image" class="max-w-full max-h-96 rounded-lg hidden">
+                        <p id="image-placeholder" class="text-gray-500">Image generation pending...</p>
+                        <p id="error-message" class="text-red-400 hidden"></p>
+                        <a id="downloadBtn1" href="#" download="vibe-code-image.png" class="hidden mt-4 py-2 px-5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-md">Download Image</a>
+                     </div>
+                </div>
+
+                <div id="image-editor-section" class="mb-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Image Editor (Inpainting)</h3>
+                    <div class="space-y-4 p-4 bg-gray-800/50 rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <label for="brush-size" class="text-sm">Brush Size:</label>
+                            <input id="brush-size" type="range" min="5" max="100" value="30" class="flex-grow">
+                            <button id="clear-mask-btn" class="bg-gray-700 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-md transition">Clear Mask</button>
+                        </div>
+                        <canvas id="editor-canvas" class="w-full rounded-lg border border-gray-600"></canvas>
+                        <textarea id="followup-prompt" rows="2" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Follow-up prompt (e.g., 'make the alien wear a purple hat')"></textarea>
+                        <div class="flex gap-4">
+                            <button id="regenerateImageBtn" class="w-full py-3 px-4 text-lg font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-lg">Regenerate with NanoBanana</button>
+                            <a id="downloadBtn2" href="#" download="vibe-code-image-edited.png" class="w-full py-3 px-4 text-lg font-semibold text-white text-center bg-green-600 hover:bg-green-700 rounded-lg shadow-lg">Download Edit</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="description-generator-section" class="mb-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">AI Product Description Generator</h3>
+                    <div class="space-y-4 p-4 bg-gray-800/50 rounded-lg">
+                         <div class="space-y-2">
+                            <label for="seo-topic" class="text-sm font-medium text-gray-300">SEO Research Topic</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="seo-topic" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="e.g., 3I/Atlas interstellar comet collection">
+                                <button id="research-btn" class="py-3 px-5 font-semibold text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg">Research</button>
+                            </div>
+                         </div>
+                         <div class="space-y-2">
+                            <label for="research-profiles" class="text-sm font-medium text-gray-300">Saved Research Profiles</label>
+                            <div class="flex gap-2">
+                                <select id="research-profiles" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white">
+                                    <option value="">Select a saved profile...</option>
+                                </select>
+                                <button id="save-profiles-btn" class="py-3 px-5 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg" title="Save Profiles to File">Save</button>
+                                <label for="load-profiles-input" class="py-3 px-5 font-semibold text-white bg-gray-600 hover:bg-gray-700 rounded-lg cursor-pointer" title="Load Profiles from File">Load</label>
+                                <input type="file" id="load-profiles-input" class="hidden" accept=".json">
+                            </div>
+                         </div>
+                         <textarea id="image-context" rows="3" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Optional: Add context, keywords, or a brief description of the uploaded image to guide the AI..."></textarea>
+                         <input type="text" id="product-type" class="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-500" placeholder="Enter product type (e.g., T-Shirt, Mug, Poster)">
+                         <div class="flex gap-4">
+                            <button id="generateDescBtn" class="w-full py-3 px-4 text-lg font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-lg">Generate Description</button>
+                            <button id="toggle-source-btn" class="w-auto py-3 px-5 text-lg font-semibold text-white bg-gray-600 hover:bg-gray-700 rounded-lg shadow-lg" title="Toggle HTML Source View">&lt;/&gt;</button>
+                         </div>
+                         <div class="relative">
+                            <div id="editor-toolbar" class="hidden flex items-center gap-2 p-2 bg-gray-700/50 rounded-t-lg border-b border-gray-600">
+                                <button class="edit-btn font-bold" data-tag="strong">B</button>
+                                <button class="edit-btn italic" data-tag="em">I</button>
+                                <button class="edit-btn underline" data-tag="u">U</button>
+                                <button class="edit-btn" data-tag="mark">Highlight</button>
+                                <button class="edit-btn" data-tag="span" data-style="font-size: 1.2em;">Enlarge</button>
+                            </div>
+                            <textarea id="description-output" rows="8" class="w-full bg-gray-900/80 border border-gray-600 rounded-lg p-4 text-gray-300" placeholder="Generated product description will appear here..."></textarea>
+                            <div id="description-preview" class="w-full min-h-[170px] bg-gray-900/80 border border-gray-600 rounded-lg p-4 text-gray-300 hidden prose prose-invert max-w-none"></div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- UI Element References ---
+        const imageUploadInput = document.getElementById('imageUpload');
+        const scenarioInput = document.getElementById('scenario');
+        const brainstormThemeInput = document.getElementById('brainstorm-theme');
+        const brainstormBtn = document.getElementById('brainstorm-btn');
+        const brainstormResults = document.getElementById('brainstorm-results');
+        const generateBtn = document.getElementById('generateBtn');
+        const mainGeneratorInputs = document.getElementById('main-generator-inputs');
+        const outputContainer = document.getElementById('output-container');
+        const promptGeneratorSection = document.getElementById('prompt-generator-section');
+        const promptOutput = document.getElementById('prompt-output');
+        const copyPromptBtn = document.getElementById('copyPromptBtn');
+        const generateImageBtn = document.getElementById('generateImageBtn');
+        const imagePreviewSection = document.getElementById('image-preview-section');
+        const loader = document.getElementById('loader');
+        const generatedImage = document.getElementById('generated-image');
+        const imagePlaceholder = document.getElementById('image-placeholder');
+        const errorMessage = document.getElementById('error-message');
+        const downloadBtn1 = document.getElementById('downloadBtn1');
+        const downloadBtn2 = document.getElementById('downloadBtn2');
+
+        // Font controls
+        const fontFamilySelect = document.getElementById('font-family');
+        const fontSizeSelect = document.getElementById('font-size');
+        const fontColorInput = document.getElementById('font-color');
+        const fontPreview = document.getElementById('font-preview');
+
+        // Editor elements
+        const imageEditorSection = document.getElementById('image-editor-section');
+        const editorCanvas = document.getElementById('editor-canvas');
+        const ctx = editorCanvas.getContext('2d');
+        const brushSizeInput = document.getElementById('brush-size');
+        const customCursor = document.getElementById('custom-cursor');
+        const clearMaskBtn = document.getElementById('clear-mask-btn');
+        const followupPromptInput = document.getElementById('followup-prompt');
+        const regenerateImageBtn = document.getElementById('regenerateImageBtn');
+        
+        // Description Generator elements
+        const descriptionGeneratorSection = document.getElementById('description-generator-section');
+        const seoTopicInput = document.getElementById('seo-topic');
+        const researchBtn = document.getElementById('research-btn');
+        const researchProfilesSelect = document.getElementById('research-profiles');
+        const saveProfilesBtn = document.getElementById('save-profiles-btn');
+        const loadProfilesInput = document.getElementById('load-profiles-input');
+        const imageContextInput = document.getElementById('image-context');
+        const productTypeInput = document.getElementById('product-type');
+        const generateDescBtn = document.getElementById('generateDescBtn');
+        const descriptionOutput = document.getElementById('description-output');
+        const toggleSourceBtn = document.getElementById('toggle-source-btn');
+        const descriptionPreview = document.getElementById('description-preview');
+        const editorToolbar = document.getElementById('editor-toolbar');
+
+        let originalImageBase64 = null;
+        let isDrawing = false;
+        let isDescriptionSourceMode = false;
+        let researchProfiles = {};
+        
+        const FONT_SIZE_MAP = { tiny: '0.7rem', small: '0.85rem', normal: '1rem', large: '1.25rem', huge: '1.5rem' };
+
+        // --- Core Logic ---
+
+        const updateFontPreview = () => {
+            const family = fontFamilySelect.value;
+            const color = fontColorInput.value;
+            const size = FONT_SIZE_MAP[fontSizeSelect.value];
+            fontPreview.style.fontFamily = `"${family}", sans-serif`;
+            fontPreview.style.color = color;
+            fontPreview.style.fontSize = size;
+            fontPreview.className = 'p-2.5 rounded-lg bg-gray-900 text-center'; // Reset classes
+            if (family === 'Cooper Black') fontPreview.classList.add('font-cooper-black');
+            else if (family === 'Anton') fontPreview.classList.add('font-anton');
+            else if (family === 'Bangers') fontPreview.classList.add('font-bangers');
+            else if (family === 'Orbitron') fontPreview.classList.add('orbitron');
+            else if (family === 'Press Start 2P') fontPreview.classList.add('font-press-start');
+        };
+        
+        const updateBrushSize = () => {
+            const size = brushSizeInput.value;
+            customCursor.style.width = `${size}px`;
+            customCursor.style.height = `${size}px`;
+        };
+
+        const buildPromptFromChunks = (config) => {
+            const chunks = [];
+            chunks.push(`A ${config.style} t-shirt graphic featuring ${config.scenario}.`);
+            chunks.push(`Composition: single clear focal point, compact, centered, free-floating arrangement (avoid boxy look).`);
+            chunks.push(`Palette: limited, high-contrast, 4-6 bold tones.`);
+            chunks.push(`Details: thick, clean outline stroke on main subject and all text for visibility.`);
+
+            const { primary, secondary, font } = config.textConfig;
+            if ((primary.text && primary.pos !== 'none') || (secondary.text && secondary.pos !== 'none')) {
+                let typographyChunk = `Typography: Use a ${font.size}, bold '${font.family}' font with a dominant color of ${font.color}. The typography must be crisp, legible, and artistically integrated into the design. `;
+                if (primary.text) typographyChunk += `The phrase "${primary.text}" is at the ${primary.pos.toLowerCase().replace(' arc', '')}. `;
+                if (secondary.text) typographyChunk += `The punchline "${secondary.text}" is at the ${secondary.pos.toLowerCase().replace(' arc', '')}, with emphasis.`;
+                chunks.push(typographyChunk);
+            }
+            chunks.push(`Export: print-ready, ${document.getElementById('file-type').value}, ${document.getElementById('dimensions').value}, ${document.getElementById('resolution').value}.`);
+            return chunks.join(' ');
+        };
+
+        const generatePrompt = () => {
+            if (!scenarioInput.value.trim()) return;
+            const textConfig = {
+                primary: { text: document.getElementById('text-primary').value.trim(), pos: document.getElementById('pos-primary').value },
+                secondary: { text: document.getElementById('text-secondary').value.trim(), pos: document.getElementById('pos-secondary').value },
+                font: { family: fontFamilySelect.value, size: fontSizeSelect.value, color: fontColorInput.value }
+            };
+            const promptConfig = {
+                scenario: scenarioInput.value.trim(),
+                style: document.querySelector('input[name="style"]:checked')?.value || 'bold cartoon graphic',
+                textConfig,
+            };
+            promptOutput.value = buildPromptFromChunks(promptConfig);
+            outputContainer.classList.remove('hidden');
+            promptGeneratorSection.classList.remove('hidden');
+        };
+
+        const callApiModel = async (url, payload, button, buttonText) => {
+            button.disabled = true;
+            button.textContent = 'Generating...';
+            if (loader) loader.classList.remove('hidden');
+            if (generatedImage) [generatedImage, imagePlaceholder, errorMessage, downloadBtn1].forEach(el => el.classList.add('hidden'));
+            
+            try {
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error((await response.json()).error?.message || `HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = `Error: ${error.message}`;
+                    errorMessage.classList.remove('hidden');
+                }
+                if (imagePlaceholder) {
+                    imagePlaceholder.textContent = 'Generation failed.';
+                    imagePlaceholder.classList.remove('hidden');
+                }
+                return null;
+            } finally {
+                if (loader) loader.classList.add('hidden');
+                button.disabled = false;
+                button.textContent = buttonText;
+            }
+        };
+        
+        const generateImage = async () => {
+            const currentPrompt = promptOutput.value;
+            if (!currentPrompt) return;
+            imagePreviewSection.classList.remove('hidden');
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const payload = { instances: [{ prompt: currentPrompt }], parameters: { "sampleCount": 1 } };
+            const result = await callApiModel(apiUrl, payload, generateImageBtn, 'Generate Image with Imagen');
+            if (result) {
+                const base64Data = result.predictions?.[0]?.bytesBase64Encoded;
+                if (base64Data) {
+                    originalImageBase64 = `data:image/png;base64,${base64Data}`;
+                    generatedImage.src = originalImageBase64;
+                    generatedImage.classList.remove('hidden');
+                    downloadBtn1.href = originalImageBase64;
+                    downloadBtn1.classList.remove('hidden');
+                    downloadBtn2.href = originalImageBase64;
+                    initializeEditor(originalImageBase64);
+                    descriptionGeneratorSection.classList.remove('hidden');
+                } else {
+                    errorMessage.textContent = 'No image data in API response.';
+                    errorMessage.classList.remove('hidden');
+                }
+            }
+        };
+
+        const initializeEditor = (imageDataUrl) => {
+            const img = new Image();
+            img.onload = () => {
+                const aspectRatio = img.width / img.height;
+                editorCanvas.width = 512;
+                editorCanvas.height = 512 / aspectRatio;
+                ctx.drawImage(img, 0, 0, editorCanvas.width, editorCanvas.height);
+                imageEditorSection.classList.remove('hidden');
+            };
+            img.src = imageDataUrl;
+        };
+        
+        const regenerateImage = async () => {
+            const followupPrompt = followupPromptInput.value.trim();
+            if (!followupPrompt || !originalImageBase64) return;
+            imagePreviewSection.classList.remove('hidden');
+            const maskBase64 = getMaskData();
+            const imageBase64 = originalImageBase64.split(',')[1];
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [ { text: followupPrompt }, { inlineData: { mimeType: "image/png", data: imageBase64 } }, { inlineData: { mimeType: "image/png", data: maskBase64 } } ] }],
+                generationConfig: { responseModalities: ['IMAGE'] },
+            };
+            const result = await callApiModel(apiUrl, payload, regenerateImageBtn, 'Regenerate with NanoBanana');
+            if (result) {
+                 const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                 if (base64Data) {
+                    originalImageBase64 = `data:image/png;base64,${base64Data}`;
+                    generatedImage.src = originalImageBase64;
+                    generatedImage.classList.remove('hidden');
+                    downloadBtn1.href = originalImageBase64;
+                    downloadBtn1.classList.remove('hidden');
+                    downloadBtn2.href = originalImageBase64;
+                    initializeEditor(originalImageBase64);
+                 } else {
+                    errorMessage.textContent = 'No image data in regeneration response.';
+                    errorMessage.classList.remove('hidden');
+                 }
+            }
+        };
+        
+        const brainstormScenarios = async () => {
+            const theme = brainstormThemeInput.value.trim();
+            if (!theme) return;
+            
+            const style = document.querySelector('input[name="style"]:checked')?.value || 'bold cartoon graphic';
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const prompt = `You are a creative director for a trendy t-shirt company that specializes in ${style} designs. Brainstorm 5 funny, clever, or visually interesting scenarios for a t-shirt design based on the theme: "${theme}". Return the result as a valid JSON array of strings. Only return the JSON array, with no other text, comments, or markdown.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { responseMimeType: "application/json" }
+            };
+
+            brainstormBtn.disabled = true;
+            brainstormBtn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error((await response.json()).error?.message || `HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const scenarios = JSON.parse(result.candidates?.[0]?.content?.parts?.[0]?.text);
+                
+                brainstormResults.innerHTML = '';
+                scenarios.forEach(s => {
+                    const button = document.createElement('button');
+                    button.textContent = s;
+                    button.className = 'bg-gray-700 hover:bg-indigo-600 text-white text-sm font-medium py-1 px-3 rounded-full transition';
+                    button.onclick = () => { scenarioInput.value = s; };
+                    brainstormResults.appendChild(button);
+                });
+
+            } catch (error) {
+                console.error("Brainstorming failed:", error);
+                brainstormResults.innerHTML = `<p class="text-red-400 text-sm">Could not generate ideas. Please try again.</p>`;
+            } finally {
+                brainstormBtn.disabled = false;
+                brainstormBtn.textContent = '✨ Brainstorm Ideas';
+            }
+        };
+
+        const researchSEOTopic = async () => {
+            const topic = seoTopicInput.value.trim();
+            if (!topic) return;
+            
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const prompt = `You are a world-class SEO and Generative Engine Optimization (GEO) expert for e-commerce. A user wants to create products based on the topic: "${topic}". Conduct a web search to understand this topic's niche, audience, and related concepts. Return a JSON object with the following structure and no other text: {"topic": "string", "optimizedTitle": "string", "keywords": ["string"], "hashtags": ["string"], "descriptionHooks": ["string"], "geoInsights": "string"}. The keywords should include long-tail variations. The hashtags must be relevant to Instagram, Etsy, and Pinterest. The descriptionHooks should be compelling opening sentences. The geoInsights should mention any cultural or location-based relevance.`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ "google_search": {} }],
+                generationConfig: { responseMimeType: "application/json" }
+            };
+
+            researchBtn.disabled = true;
+            researchBtn.textContent = 'Researching...';
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error((await response.json()).error?.message || `HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                 if (jsonText && typeof jsonText === 'string') {
+                    const researchData = JSON.parse(jsonText);
+                    researchProfiles[topic] = researchData;
+                    updateResearchProfilesDropdown();
+                    researchProfilesSelect.value = topic;
+                    imageContextInput.value = researchData.keywords.join(', ');
+                } else {
+                    throw new Error("API returned an empty or invalid response. The topic might be too complex or restricted.");
+                }
+            } catch (error) {
+                console.error("SEO Research failed:", error);
+                imageContextInput.value = `Error during research: ${error.message}`;
+            } finally {
+                researchBtn.disabled = false;
+                researchBtn.textContent = 'Research';
+            }
+        };
+
+        const generateDescription = async () => {
+            const productType = productTypeInput.value.trim();
+            const userContext = imageContextInput.value.trim();
+
+            if (!productType || !originalImageBase64) {
+                descriptionOutput.value = "Please enter a product type and provide an image first.";
+                return;
+            }
+            
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            let prompt = `Act as an expert eCommerce copywriter specializing in SEO and Generative Engine Optimization. Your task is to write a compelling product description for a ${productType}. Use the provided image as the primary visual reference. Identify the most salient SEO and GEO-relevant keywords in your response and wrap them in <strong> tags. For example: 'This is a great product for <strong>stargazers</strong> in <strong>California</strong>.'`;
+            if (userContext) {
+                prompt += ` Crucially, you MUST incorporate the following user-provided context to inform the description's theme, keywords, and tone: "${userContext}".`;
+            }
+            prompt += ` Synthesize all information to create a rich, engaging, and SEO-optimized description of 2-3 paragraphs. Start with a catchy title. Do not mention product specs. The entire output should be valid HTML.`;
+
+            const payload = { contents: [ { role: "user", parts: [ { text: prompt }, { inlineData: { mimeType: "image/png", data: imageBase64 } } ] } ] };
+            
+            generateDescBtn.disabled = true;
+            generateDescBtn.textContent = 'Generating...';
+            descriptionOutput.value = "";
+            descriptionPreview.innerHTML = "<p>Generating creative product description...</p>";
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error((await response.json()).error?.message || `HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                descriptionOutput.value = text || "Could not generate a description from the response.";
+                descriptionPreview.innerHTML = descriptionOutput.value;
+                
+                isDescriptionSourceMode = false;
+                editorToolbar.classList.add('hidden');
+                descriptionOutput.classList.add('hidden');
+                descriptionPreview.classList.remove('hidden');
+                toggleSourceBtn.textContent = '< />';
+                toggleSourceBtn.classList.remove('bg-indigo-600');
+                toggleSourceBtn.classList.add('bg-gray-600');
+
+            } catch (error) {
+                console.error("Description generation failed:", error);
+                const errorMsg = `Error: ${error.message}`;
+                descriptionOutput.value = errorMsg;
+                descriptionPreview.innerHTML = `<p class="text-red-400">${errorMsg}</p>`;
+            } finally {
+                generateDescBtn.disabled = false;
+                generateDescBtn.textContent = 'Generate Description';
+            }
+        };
+
+        const handleImageUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalImageBase64 = e.target.result;
+
+                generatedImage.src = originalImageBase64;
+                generatedImage.classList.remove('hidden');
+                imagePlaceholder.classList.add('hidden');
+                loader.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                mainGeneratorInputs.classList.add('hidden');
+                outputContainer.classList.remove('hidden');
+                promptGeneratorSection.classList.add('hidden');
+                imagePreviewSection.classList.remove('hidden');
+                descriptionGeneratorSection.classList.remove('hidden');
+
+                downloadBtn1.href = originalImageBase64;
+                downloadBtn1.classList.remove('hidden');
+                downloadBtn2.href = originalImageBase64;
+
+                initializeEditor(originalImageBase64);
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        const toggleDescriptionView = () => {
+            isDescriptionSourceMode = !isDescriptionSourceMode;
+            if (isDescriptionSourceMode) {
+                // Show Source (Textarea)
+                descriptionPreview.classList.add('hidden');
+                descriptionOutput.classList.remove('hidden');
+                editorToolbar.classList.remove('hidden');
+                toggleSourceBtn.textContent = 'Preview';
+                toggleSourceBtn.classList.add('bg-indigo-600');
+                toggleSourceBtn.classList.remove('bg-gray-600');
+            } else {
+                // Show Preview (Rendered HTML)
+                descriptionPreview.innerHTML = descriptionOutput.value; // Update preview from textarea
+                descriptionOutput.classList.add('hidden');
+                editorToolbar.classList.add('hidden');
+                descriptionPreview.classList.remove('hidden');
+                toggleSourceBtn.textContent = '< />';
+                toggleSourceBtn.classList.remove('bg-indigo-600');
+                toggleSourceBtn.classList.add('bg-gray-600');
+            }
+        };
+
+        const wrapSelectionWithTag = (tag, style = '') => {
+            const start = descriptionOutput.selectionStart;
+            const end = descriptionOutput.selectionEnd;
+            if (start === end) return; // No text selected
+
+            const text = descriptionOutput.value;
+            const selectedText = text.substring(start, end);
+            
+            let openTag = `<${tag}`;
+            if (style) {
+                openTag += ` style="${style}"`;
+            }
+            openTag += '>';
+
+            const closeTag = `</${tag}>`;
+            
+            const newText = `${text.substring(0, start)}${openTag}${selectedText}${closeTag}${text.substring(end)}`;
+            descriptionOutput.value = newText;
+        };
+
+        const updateResearchProfilesDropdown = () => {
+            researchProfilesSelect.innerHTML = '<option value="">Select a saved profile...</option>';
+            for (const topic in researchProfiles) {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                researchProfilesSelect.appendChild(option);
+            }
+        };
+
+        const saveProfilesToFile = () => {
+            if (Object.keys(researchProfiles).length === 0) return;
+            const dataStr = JSON.stringify(researchProfiles, null, 2);
+            const dataBlob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'vibe-code-research.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        };
+
+        const loadProfilesFromFile = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const loadedProfiles = JSON.parse(e.target.result);
+                    researchProfiles = {...researchProfiles, ...loadedProfiles}; // Merge with existing
+                    updateResearchProfilesDropdown();
+                } catch (err) {
+                    console.error("Error parsing profile file:", err);
+                    alert("Invalid profile file format.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = null; // Reset input
+        };
+
+        // --- Event Listeners ---
+        imageUploadInput.addEventListener('change', handleImageUpload);
+        generateBtn.addEventListener('click', generatePrompt);
+        brainstormBtn.addEventListener('click', brainstormScenarios);
+        generateImageBtn.addEventListener('click', generateImage);
+        regenerateImageBtn.addEventListener('click', regenerateImage);
+        generateDescBtn.addEventListener('click', generateDescription);
+        toggleSourceBtn.addEventListener('click', toggleDescriptionView);
+        researchBtn.addEventListener('click', researchSEOTopic);
+        saveProfilesBtn.addEventListener('click', saveProfilesToFile);
+        loadProfilesInput.addEventListener('change', loadProfilesFromFile);
+
+        researchProfilesSelect.addEventListener('change', (e) => {
+            const selectedTopic = e.target.value;
+            if (selectedTopic && researchProfiles[selectedTopic]) {
+                const profile = researchProfiles[selectedTopic];
+                imageContextInput.value = `Keywords: ${profile.keywords.join(', ')}\n\nHooks: ${profile.descriptionHooks.join(' ')}`;
+            } else {
+                imageContextInput.value = '';
+            }
+        });
+        
+        editorToolbar.addEventListener('click', (e) => {
+            e.preventDefault();
+            const button = e.target.closest('.edit-btn');
+            if (!button) return;
+
+            const tag = button.dataset.tag;
+            const style = button.dataset.style || '';
+            wrapSelectionWithTag(tag, style);
+        });
+
+        document.querySelectorAll('.export-option').forEach(input => input.addEventListener('change', () => { if (promptOutput.value) generatePrompt(); }));
+        brushSizeInput.addEventListener('input', updateBrushSize);
+        [fontFamilySelect, fontSizeSelect, fontColorInput].forEach(el => el.addEventListener('input', updateFontPreview));
+
+        // Drawing and custom cursor logic
+        const draw = (e) => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = editorCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            const scaleX = editorCanvas.width / rect.width;
+            const scaleY = editorCanvas.height / rect.height;
+            ctx.fillStyle = 'rgba(255, 0, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(x * scaleX, y * scaleY, brushSizeInput.value * (scaleX), 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        editorCanvas.addEventListener('mouseenter', () => {
+            editorCanvas.classList.add('editing');
+            customCursor.style.display = 'block';
+        });
+        editorCanvas.addEventListener('mouseleave', () => {
+            editorCanvas.classList.remove('editing');
+            customCursor.style.display = 'none';
+        });
+        editorCanvas.addEventListener('mousemove', (e) => {
+            customCursor.style.left = `${e.clientX}px`;
+            customCursor.style.top = `${e.clientY}px`;
+            draw(e);
+        });
+        editorCanvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
+        editorCanvas.addEventListener('mouseup', () => isDrawing = false);
+        editorCanvas.addEventListener('touchend', () => isDrawing = false);
+
+        clearMaskBtn.addEventListener('click', () => initializeEditor(originalImageBase64));
+        copyPromptBtn.addEventListener('click', () => {
+            const textToCopy = promptOutput.value;
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyPromptBtn.textContent = 'Copied!';
+                setTimeout(() => { copyPromptBtn.textContent = 'Copy'; }, 2000);
+            } catch (err) { console.error('Fallback copy failed', err); }
+            document.body.removeChild(textArea);
+        });
+
+
+        // Initial state
+        updateFontPreview();
+        updateBrushSize();
+    });
+    </script>
+</body>
+</html>
+

@@ -1,5 +1,6 @@
+"use client"
 
-'use client'
+import { config, getOracleImageUrls } from "@/lib/config"
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -83,7 +84,7 @@ export default function EnhancedProductShowcase() {
   }
 
   const openProductLink = (product: FeaturedProduct) => {
-    window.open(product.printify_url, '_blank')
+    window.open(product.printify_url, '_blank', 'noopener,noreferrer')
   }
 
   // Organize products by brand for strategic display
@@ -239,7 +240,7 @@ export default function EnhancedProductShowcase() {
           <div className="relative mb-12">
             <div className="relative h-48 lg:h-72 rounded-xl overflow-hidden">
               <Image
-                src="https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png"
+                src={getOracleImageUrls()[2]}
                 alt="3I/Atlas Cosmic Collection Banner"
                 fill
                 className="object-cover"
@@ -315,7 +316,7 @@ export default function EnhancedProductShowcase() {
                 <Button
                   variant="outline"
                   className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
-                  onClick={() => window.open('https://mysticarcana.com', '_blank')}
+                  onClick={() => window.open(config.external.mysticArcana || '#', '_blank', 'noopener,noreferrer')}
                 >
                   Visit Store <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -348,7 +349,7 @@ export default function EnhancedProductShowcase() {
                 <Button
                   variant="outline"
                   className="border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-white"
-                  onClick={() => window.open('https://edmshuffle.com', '_blank')}
+                  onClick={() => window.open(config.external.edmShuffle || '#', '_blank', 'noopener,noreferrer')}
                 >
                   Visit Store <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -381,7 +382,7 @@ export default function EnhancedProductShowcase() {
                 <Button
                   variant="outline"
                   className="border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  onClick={() => window.open('https://birthdaygen.com', '_blank')}
+                  onClick={() => window.open(config.external.birthdayGen || '#', '_blank', 'noopener,noreferrer')}
                 >
                   Visit Store <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>

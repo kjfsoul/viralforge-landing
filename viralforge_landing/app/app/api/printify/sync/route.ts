@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrintifyProductService } from '@/lib/printify-product-service';
-import { Product } from '@/lib/products-service';
+import { Product } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {

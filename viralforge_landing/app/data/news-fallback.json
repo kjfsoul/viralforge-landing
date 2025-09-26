@@ -1,0 +1,29 @@
+[
+  {
+    "id": "nasa-perseverance-sample",
+    "title": "NASA Teams Coordinate 3I/Atlas Observation Campaign",
+    "summary": "Ground and space-based telescopes align to track the interstellar object as it enters the Mars flyby window in early October.",
+    "published_at": "2025-09-20T12:00:00Z",
+    "image_url": "https://images-assets.nasa.gov/image/PIA25000/PIA25000~orig.jpg",
+    "source": "NASA",
+    "url": "https://www.nasa.gov" 
+  },
+  {
+    "id": "esa-solar-orbiter-data",
+    "title": "ESA Solar Orbiter Detects 3I/Atlas Coma Variability",
+    "summary": "Particle instruments aboard Solar Orbiter record shifts in 3I/Atlas dust and gas output, offering clues to the comet's volatile reservoirs.",
+    "published_at": "2025-09-18T08:30:00Z",
+    "image_url": "https://www.esa.int/var/esa/storage/images/esa_multimedia/images/2024/06/solar_orbiter/25296259-2-eng-GB/Solar_Orbiter_pillars.jpg",
+    "source": "ESA",
+    "url": "https://www.esa.int"
+  },
+  {
+    "id": "spaceflight-starlink",
+    "title": "Amateur Network Captures 3I/Atlas Tail Lengthening",
+    "summary": "Citizen scientists contributing to the Atlas Watch program spotted rapid 3I/Atlas tail growth as the comet crosses 1.5 AU from the Sun.",
+    "published_at": "2025-09-17T22:45:00Z",
+    "image_url": "https://cdn.spaceflightnewsapi.net/images/placeholder.jpg",
+    "source": "Atlas Watch",
+    "url": "https://www.space.com"
+  }
+]

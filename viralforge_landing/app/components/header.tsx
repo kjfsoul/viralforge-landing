@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export default function Header() {
+export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
@@ -98,3 +98,5 @@ export default function Header() {
     </header>
   )
 }
+
+export default Header

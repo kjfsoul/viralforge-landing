@@ -1,0 +1,9 @@
+{
+  "name": "3I/Atlas",
+  "short_name": "3I/Atlas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#6366f1",
+  "icons": []
+}

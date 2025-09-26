@@ -3,18 +3,21 @@
  * Handles product operations with Printify API integration
  */
 
-import {
-    CreateProductRequest,
-    PrintifyAPIClient,
-    PrintifyBlueprint,
-    PrintifyPrintProvider,
-    PrintifyProduct,
-    PrintifyShop,
-    PrintifyVariant,
-    UpdateProductRequest,
-    UploadImageRequest
-} from './printify-api';
-import { Product } from './products-service';
+import { getPrintifyClient, PrintifyApi } from './printify-api'
+import type {
+  PrintifyProduct,
+  Product,
+  PrintifyBlueprint,
+  PrintifyProvider as PrintifyPrintProvider,
+  PrintifyShop,
+  PrintifyVariant,
+  PrintifyUploadImageRequest as UploadImageRequest,
+  PrintifyUploadImageResponse,
+  PrintifySyncResponse,
+} from './types'
+
+type CreateProductRequest = Record<string, unknown>;
+type UpdateProductRequest = Record<string, unknown>;
 
 export interface PrintifyProductConfig {
   defaultShopId?: string;
@@ -33,10 +36,10 @@ export interface ProductSyncResult {
 }
 
 export class PrintifyProductService {
-  private client: PrintifyAPIClient;
+  private client: PrintifyApi;
   private config: PrintifyProductConfig;
 
-  constructor(client: PrintifyAPIClient, config: PrintifyProductConfig = {}) {
+  constructor(client: PrintifyApi, config: PrintifyProductConfig = {}) {
     this.client = client;
     this.config = {
       defaultPosition: 'front',
@@ -102,7 +105,7 @@ export class PrintifyProductService {
         contents: base64Image
       };
 
-      const uploadResponse = await this.client.uploadImage(uploadRequest);
+      const uploadResponse: PrintifyUploadImageResponse = await this.client.uploadImage(uploadRequest);
       return uploadResponse.id;
     } catch (error) {
       console.error('Error uploading image to Printify:', error);
@@ -134,7 +137,7 @@ export class PrintifyProductService {
         blueprintId,
         printProviderId,
         variantId
-      );
+      ) as any;
 
       // Update the image ID in the product
       if (printifyImageId) {
@@ -310,7 +313,7 @@ export class PrintifyProductService {
    */
   async syncProduct(shopId: string, productId: string): Promise<boolean> {
     try {
-      const result = await this.client.syncProduct(shopId, productId);
+      const result: PrintifySyncResponse = await this.client.syncProduct(shopId, productId);
       return result.success;
     } catch (error) {
       console.error('Error syncing product:', error);
@@ -324,7 +327,6 @@ let printifyProductService: PrintifyProductService | null = null;
 
 export function getPrintifyProductService(): PrintifyProductService {
   if (!printifyProductService) {
-    const { getPrintifyClient } = require('./printify-api');
     const client = getPrintifyClient();
     printifyProductService = new PrintifyProductService(client);
   }

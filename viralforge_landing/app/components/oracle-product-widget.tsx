@@ -1,56 +1,27 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { motion, useInView } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ShoppingCart, Sparkles, Star } from 'lucide-react'
 import Image from 'next/image'
+import type { Product } from '@/lib/types'
 
-interface Product {
-  id: string
-  title: string
-  description: string
-  brand: string
-  category: string
-  price: number
-  images: { id: string; url: string }[]
-  printify_url: string
-  status: string
-  tags: string[]
+function formatPrice(cents?: number) {
+  if (typeof cents !== 'number' || Number.isNaN(cents) || cents <= 0) {
+    return '—'
+  }
+  return `$${(cents / 100).toFixed(2)}`
 }
 
-export default function OracleProductWidget() {
-  const [oracleProducts, setOracleProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const ref = useRef(null)
+export default function OracleProductWidget({ products = [] }: { products?: Product[] }) {
+  const ref = useRef<HTMLDivElement | null>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
 
-  useEffect(() => {
-    async function fetchOracleProducts() {
-      try {
-        const response = await fetch('/api/products?context=oracle')
-        const data = await response.json()
-        if (data.success) {
-          setOracleProducts(data.data.slice(0, 2)) // Show 2 mystical products
-        }
-      } catch (error) {
-        console.error('Failed to fetch oracle products:', error)
-      }
-      setLoading(false)
-    }
-
-    fetchOracleProducts()
-  }, [])
-
-  const formatPrice = (cents: number): string => {
-    return `$${(cents / 100).toFixed(2)}`
-  }
-
-  if (loading || oracleProducts.length === 0) {
+  if (!products || products.length === 0) {
     return null
   }
 
@@ -80,7 +51,7 @@ export default function OracleProductWidget() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {oracleProducts.map((product, index) => (
+        {products.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
@@ -124,7 +95,12 @@ export default function OracleProductWidget() {
 
                   <Button 
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                    onClick={() => window.open(product.printify_url, '_blank')}
+                    onClick={() => {
+                      if (product.printify_url) {
+                        window.open(product.printify_url, '_blank', 'noopener,noreferrer')
+                      }
+                    }}
+                    disabled={!product.printify_url}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Collection

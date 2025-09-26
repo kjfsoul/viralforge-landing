@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrintifyProductService } from '@/lib/printify-product-service';
-import { Product } from '@/lib/products-service';
+import { Product } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const shopId = searchParams.get('shopId');
     
     if (!shopId) {

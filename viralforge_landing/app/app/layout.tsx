@@ -1,26 +1,27 @@
-
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { config, getImageUrl, getSiteUrl } from '@/lib/config'
+import { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '3I/Atlas Interstellar Collection | Cosmic Designs by Mystic Arcana, EDM Shuffle & BirthdayGen',
-  description: 'Exclusive cosmic designs inspired by the mysterious 3I/Atlas interstellar visitor. Shop Mystic Arcana tarot & astrology, EDM Shuffle electronic music, and BirthdayGen celebration products.',
-  keywords: '3I/Atlas, interstellar object, cosmic designs, tarot, astrology, electronic music, birthday cards, space art, mystic arcana, edm shuffle, birthday gen',
+  metadataBase: new URL(config.siteUrl),
+  title: {
+    default: '3I/Atlas - Humanity\'s Third Interstellar Visitor',
+    template: '%s | 3I/Atlas'
+  },
+  description: 'Commemorate humanity\'s third interstellar visitor with our exclusive collection. Each product captures a moment in 3I/Atlas\'s historic journey through our solar system.',
+  keywords: ['3I/Atlas', 'interstellar', 'comet', 'space', 'cosmic', 'astronomy', 'science'],
+  authors: [{ name: '3I/Atlas Team' }],
   openGraph: {
-    title: '3I/Atlas Interstellar Collection | Cosmic Designs',
-    description: 'Exclusive cosmic designs inspired by the mysterious 3I/Atlas interstellar visitor',
-    url: 'https://3iatlas.com',
-    siteName: '3I/Atlas Collection',
+    title: '3I/Atlas - Humanity\'s Third Interstellar Visitor',
+    description: 'Commemorate humanity\'s third interstellar visitor with our exclusive collection.',
+    url: getSiteUrl(),
+    siteName: '3I/Atlas',
     images: [
       {
-        url: 'https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png',
-        width: 2752,
-        height: 1536,
-        alt: '3I/Atlas Interstellar Object Collection',
+        url: getImageUrl('f6796e88-78f4-4b81-8d60-730d45ee1fd5'),
+        width: 1200,
+        height: 630,
+        alt: '3I/Atlas Interstellar Journey',
       },
     ],
     locale: 'en_US',
@@ -28,10 +29,37 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '3I/Atlas Interstellar Collection | Cosmic Designs',
-    description: 'Exclusive cosmic designs inspired by the mysterious 3I/Atlas interstellar visitor',
-    images: ['https://cdn.abacus.ai/images/f6796e88-78f4-4b81-8d60-730d45ee1fd5.png'],
+    images: [getImageUrl('f6796e88-78f4-4b81-8d60-730d45ee1fd5')],
+    title: '3I/Atlas - Humanity\'s Third Interstellar Visitor',
+    description: 'Commemorate humanity\'s third interstellar visitor with our exclusive collection.',
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || '',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#6366f1' },
+    ],
+  },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({
@@ -40,52 +68,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              "name": "3I/Atlas Interstellar Collection",
-              "description": "Exclusive cosmic designs inspired by the mysterious 3I/Atlas interstellar visitor across three unique brands.",
-              "url": "https://3iatlas.com",
-              "mainEntity": {
-                "@type": "Organization",
-                "name": "3I/Atlas Collection",
-                "description": "Cosmic design collection inspired by interstellar visitors",
-                "brand": [
-                  {
-                    "@type": "Brand",
-                    "name": "Mystic Arcana",
-                    "description": "Cosmic tarot and astrology designs"
-                  },
-                  {
-                    "@type": "Brand", 
-                    "name": "EDM Shuffle",
-                    "description": "Electronic dance music cosmic art"
-                  },
-                  {
-                    "@type": "Brand",
-                    "name": "BirthdayGen", 
-                    "description": "Cosmic celebration and birthday cards"
-                  }
-                ]
-              }
-            })
-          }}
-        />
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="msapplication-TileColor" content="#6366f1" />
+        <link rel="preconnect" href={config.imageCdn.baseUrl} />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+      <body className="font-sans antialiased">
+        {children}
       </body>
     </html>
   )

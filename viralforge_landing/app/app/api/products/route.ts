@@ -1,95 +1,43 @@
-import { getPrintifyProductService } from "@/lib/printify-product-service";
-import { ProductsService } from "@/lib/products-service";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server'
+import { getAllProductsForBrand, type BrandName } from '@/lib/printify-live'
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const revalidate = 0
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = request.nextUrl;
-    const featured = searchParams.get("featured") === "true";
-    const brand = searchParams.get("brand");
-    const category = searchParams.get("category");
-    const context = searchParams.get("context"); // oracle, trajectory, hero, etc.
-    const limitParam = searchParams.get("limit");
-    const syncPrintify = searchParams.get("sync_printify") === "true";
-    const explicitLimit = limitParam
-      ? Math.max(1, Math.min(100, parseInt(limitParam)))
-      : undefined;
+    const { searchParams } = request.nextUrl
+    const brandParam = searchParams.get('brand') || ''
+    const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 3, 1), 50)
+    const page = Math.max(Number(searchParams.get('page')) || 1, 1)
+    const live = (searchParams.get('live') || '').toLowerCase() === 'true'
 
-    // Get products service instance
-    const productsService = ProductsService.getInstance();
-
-    // If caller requests live refresh, pull from Printify directly
-    const live = searchParams.get("live") === "true";
-
-    // Get filtered products
-    const products = live
-      ? await productsService.refreshFromPrintify()
-      : await productsService.getProducts({
-          featured,
-          brand: brand || undefined,
-          category: category || undefined,
-          context: context || undefined,
-          limit: explicitLimit,
-        });
-
-    // If sync_printify is requested, sync products to Printify
-    if (syncPrintify) {
-      try {
-        const printifyService = getPrintifyProductService();
-        const shops = await printifyService.getShops();
-
-        if (shops.length > 0) {
-          const defaultShopId = shops[0].id;
-          const {
-            PRINTIFY_BLUEPRINTS,
-            PRINTIFY_PRINT_PROVIDERS,
-            PRINTIFY_VARIANTS,
-          } = await import("@/lib/printify-config");
-
-          // Sync products to Printify
-          const syncResults = await printifyService.syncProducts(
-            products,
-            defaultShopId,
-            PRINTIFY_BLUEPRINTS.TSHIRT,
-            PRINTIFY_PRINT_PROVIDERS.GILDAN,
-            PRINTIFY_VARIANTS.TSHIRT_M
-          );
-
-          console.log("Printify sync results:", syncResults);
-        }
-      } catch (printifyError) {
-        console.warn("Printify sync failed:", printifyError);
-        // Continue with normal response even if Printify sync fails
-      }
+    const allowed: BrandName[] = ['3iAtlas', 'BirthdayGen', 'EDM Shuffle', 'Mystic Arcana']
+    const match = allowed.find(b => b.toLowerCase() === brandParam.toLowerCase())
+    if (!match) {
+      return NextResponse.json(
+        { success: false, error: 'brand must be one of 3iAtlas, BirthdayGen, EDM Shuffle, Mystic Arcana' },
+        { status: 400 }
+      )
     }
 
-    // Determine limit for response
-    const limit = explicitLimit ?? (featured ? 12 : context ? 6 : 50);
+    const data = await getAllProductsForBrand(match, { limit, page, live })
 
-    const res = NextResponse.json({
-      success: true,
-      data: products.slice(0, limit),
-      total: products.length,
-      store_url: "https://3iatlas.printify.me",
-      context: context || "general",
-      printify_synced: syncPrintify,
-    });
-    // Cache for 5 minutes at the edge/CDN; allow stale-while-revalidate
-    res.headers.set(
-      "Cache-Control",
-      "public, s-maxage=300, stale-while-revalidate=60"
-    );
-    return res;
+    return NextResponse.json({ success: true, data })
   } catch (error) {
-    console.error("Products API error:", error);
+    console.error('Error fetching products:', error)
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to fetch products",
-        data: [],
-        store_url: "https://3iatlas.printify.me",
-      },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to fetch products' },
       { status: 500 }
-    );
+    )
   }
+}
+
+// POST create is not part of the storefront contract; rejecting explicitly
+export async function POST() {
+  return NextResponse.json(
+    { success: false, error: 'Not supported' },
+    { status: 405 }
+  )
 }

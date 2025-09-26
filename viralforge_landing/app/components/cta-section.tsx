@@ -1,6 +1,6 @@
+"use client"
 
-'use client'
-
+import { config, getCtaImageUrl } from "@/lib/config"
 import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -8,34 +8,36 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ExternalLink, Rocket, Star, Music, Gift, Share } from 'lucide-react'
 import Image from 'next/image'
 
+const shareIntentBase = config.social.twitterShareUrl || 'https://twitter.com/intent/tweet'
+
 const brandLinks = [
   {
     name: 'Mystic Arcana',
-    platform: 'Platform',
-    url: 'https://mysticarcana.com',
+    platform: 'Official Site',
+    url: config.external.mysticArcana || '#',
     icon: Star,
     color: 'from-purple-500 to-pink-500',
-    status: '3I/Atlas Products Coming Soon'
+    status: '3I/Atlas products live soon'
   },
   {
     name: 'EDM Shuffle',
-    platform: 'Platform',
-    url: 'https://edmshuffle.com',
+    platform: 'Official Site',
+    url: config.external.edmShuffle || '#',
     icon: Music,
     color: 'from-cyan-500 to-blue-500',
-    status: 'Cosmic Designs in Production'
+    status: 'Cosmic designs in production'
   },
   {
     name: 'BirthdayGen',
-    platform: 'Platform',
-    url: 'https://birthdaygen.com',
+    platform: 'Official Site',
+    url: config.external.birthdayGen || '#',
     icon: Gift,
     color: 'from-pink-500 to-yellow-500',
-    status: 'Space-Themed Cards Loading...'
+    status: 'Space-themed cards loading'
   }
 ]
 
-export default function CTASection() {
+export function CTASection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const [isSharing, setIsSharing] = useState(false)
@@ -51,8 +53,8 @@ export default function CTASection() {
         })
       } else {
         // Fallback for browsers without Web Share API
-        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out these amazing cosmic designs inspired by the mysterious 3I/Atlas interstellar object!')}&url=${encodeURIComponent(window.location.href)}`
-        window.open(shareUrl, '_blank')
+        const shareUrl = `${shareIntentBase}?text=${encodeURIComponent('Check out these amazing cosmic designs inspired by the mysterious 3I/Atlas interstellar object!')}&url=${encodeURIComponent(window.location.href)}`
+        window.open(shareUrl, '_blank', 'noopener,noreferrer')
       }
     } catch (error) {
       console.log('Share cancelled or failed:', error)
@@ -67,7 +69,7 @@ export default function CTASection() {
       <div className="absolute inset-0 z-0">
         <div className="relative w-full h-full">
           <Image
-            src="https://cdn.abacus.ai/images/f7568d5f-de1e-4130-adf6-280256d622c6.png"
+            src={getCtaImageUrl()}
             alt="Cosmic call to action background"
             fill
             className="object-cover opacity-20"
@@ -122,19 +124,21 @@ export default function CTASection() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          {brandLinks.map((brand, index) => (
-            <motion.div
-              key={brand.name}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+          {brandLinks.map((brand) => {
+            const Icon = brand.icon
+            return (
+              <motion.div
+                key={brand.name}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
               <Card 
                 className="bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover-neon group cursor-pointer"
-                onClick={() => window.open(brand.url, '_blank')}
+                onClick={() => window.open(brand.url, '_blank', 'noopener,noreferrer')}
               >
                 <CardContent className="p-6 text-center">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r ${brand.color} mb-4 group-hover:scale-110 transition-transform`}>
-                    <brand.icon className="h-6 w-6 text-white" />
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">{brand.name}</h3>
                   <p className="text-cyan-400 text-sm mb-4">{brand.status}</p>
@@ -144,8 +148,9 @@ export default function CTASection() {
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          ))}
+              </motion.div>
+            )
+          })}
         </motion.div>
 
         {/* Final CTA */}
@@ -163,7 +168,7 @@ export default function CTASection() {
             our autonomous AI system that transforms astronomical events into stunning print-on-demand designs.
           </p>
           <Button 
-            onClick={() => window.open('https://mysticarcana.com', '_blank')}
+            onClick={() => window.open(config.external.mysticArcana || '#', '_blank', 'noopener,noreferrer')}
             size="lg"
             className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 hover:from-purple-600 hover:via-cyan-600 hover:to-pink-600 text-white px-12 py-4 rounded-full text-lg hover-neon group"
           >
@@ -175,3 +180,5 @@ export default function CTASection() {
     </section>
   )
 }
+
+export default CTASection

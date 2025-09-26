@@ -9,15 +9,25 @@ import { ExternalLink, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+const limitWords = (input: string, maxWords = 20) => {
+  if (!input) return ''
+  const words = input.replace(/\s+/g, ' ').trim().split(' ')
+  if (words.length <= maxWords) return words.join(' ')
+  return words.slice(0, maxWords).join(' ') + '…'
+}
+
 interface Product {
   id: string
   title: string
   description: string
   brand: string
   category: string
-  price: number
+  price?: number
+  price_min?: number | null
+  price_max?: number | null
   images: { id: string; url: string }[]
-  printify_url: string
+  printify_url?: string
+  storefront_product_url?: string | null
   status: string
 }
 
@@ -43,7 +53,31 @@ export default function BrandHighlightProducts({
         const response = await fetch(`/api/products?brand=${encodeURIComponent(brandName)}`)
         const data = await response.json()
         if (data.success) {
-          setBrandProducts(data.data.slice(0, 1)) // Show 1 featured product per brand
+          const products = (data.data as any[]).slice(0, 1).map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: limitWords(item.short_description || item.description || ''),
+            brand: item.brand,
+            category: item.tags?.[0] ?? item.brand,
+            price: typeof item.price_min_cents === 'number'
+              ? item.price_min_cents
+              : typeof item.price_min === 'number'
+                ? Math.round(item.price_min * 100)
+                : typeof item.default_price_cents === 'number'
+                  ? item.default_price_cents
+                  : null,
+            price_min: typeof item.price_min_cents === 'number'
+              ? item.price_min_cents
+              : typeof item.price_min === 'number'
+                ? Math.round(item.price_min * 100)
+                : null,
+            price_max: null,
+            images: item.images ?? [],
+            printify_url: item.storefront_product_url ?? '#',
+            storefront_product_url: item.storefront_product_url ?? '#',
+            status: 'Available',
+          }))
+          setBrandProducts(products)
         }
       } catch (error) {
         console.error(`Failed to fetch ${brandName} products:`, error)
@@ -54,7 +88,17 @@ export default function BrandHighlightProducts({
     fetchBrandProducts()
   }, [brandName])
 
-  const formatPrice = (price: number): string => `$${price.toFixed(2)}`;
+  const formatPrice = (price: number | null): string => {
+    if (typeof price !== 'number' || Number.isNaN(price) || price <= 0) return '—'
+    return `$${(price / 100).toFixed(2)}`
+  }
+  const renderPrice = (p: Product) => formatPrice(
+    typeof p.price_min === 'number'
+      ? p.price_min
+      : typeof p.price === 'number'
+        ? p.price
+        : null
+  )
 
   if (loading || brandProducts.length === 0) {
     return null
@@ -100,9 +144,7 @@ export default function BrandHighlightProducts({
                 : ""}
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-cyan-400 font-bold text-xl">
-                {formatPrice(product.price)}
-              </span>
+                    <span className="text-cyan-400 font-bold text-xl">{renderPrice(product)}</span>
               <Badge className="bg-green-500 text-white text-xs">
                 {product.status}
               </Badge>
@@ -115,7 +157,7 @@ export default function BrandHighlightProducts({
             <Button
               size="sm"
               className={`flex-1 bg-gradient-to-r ${brandColor.replace("border-", "")} hover:opacity-90 text-white`}
-              onClick={() => window.open(product.printify_url, "_blank")}
+              onClick={() => window.open(product.storefront_product_url || product.printify_url || '#', "_blank")}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
               Shop Now
@@ -124,7 +166,7 @@ export default function BrandHighlightProducts({
               size="sm"
               variant="outline"
               className="border-gray-600 text-gray-300 hover:bg-gray-800"
-              onClick={() => window.open(product.printify_url, "_blank")}
+              onClick={() => window.open(product.storefront_product_url || product.printify_url || '#', "_blank")}
             >
               <ExternalLink className="h-4 w-4" />
             </Button>

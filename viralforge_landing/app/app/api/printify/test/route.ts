@@ -1,6 +1,10 @@
 import { getPrintifyProductService } from '@/lib/printify-product-service';
-import { ProductsService } from '@/lib/products-service';
+import { createProductsService } from '@/lib/products-service';
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,8 +21,11 @@ export async function GET(request: NextRequest) {
     console.log('Blueprints found:', blueprints.length);
     
     // Test 3: Get a sample product from CSV
-    const productsService = ProductsService.getInstance();
-    const csvProducts = await productsService.getProducts({ limit: 1 });
+    const productsService = createProductsService(process.env.PRINTIFY_API_TOKEN || '', true);
+    const csvProductsResponse = await productsService.getAllProducts();
+    const csvProducts = Array.isArray(csvProductsResponse.data)
+      ? csvProductsResponse.data
+      : [];
     
     if (csvProducts.length === 0) {
       return NextResponse.json({

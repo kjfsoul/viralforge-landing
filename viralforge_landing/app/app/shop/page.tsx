@@ -1,43 +1,38 @@
-
+import { config, getImageUrl, getShopUrl } from '@/lib/config'
 import { Metadata } from 'next'
-import Header from '@/components/header'
-import Footer from '@/components/footer'
-import FullShopPage from '@/components/full-shop-page'
 
 export const metadata: Metadata = {
-  title: '3I/Atlas Complete Collection | All Cosmic Products',
-  description: 'Browse our complete collection of 3I/Atlas cosmic products from Mystic Arcana, EDM Shuffle, and BirthdayGen. Find the perfect interstellar-inspired merchandise.',
-  keywords: '3I/Atlas shop, cosmic products, Mystic Arcana, EDM Shuffle, BirthdayGen, interstellar merchandise, space gifts',
+  title: 'Cosmic Shop | 3I/Atlas',
+  description: 'Explore our curated collections inspired by interstellar phenomena and cosmic energies',
   openGraph: {
-    title: '3I/Atlas Complete Collection | All Cosmic Products',
-    description: 'Browse our complete collection of 3I/Atlas cosmic products from all our brands.',
-    url: 'https://3iatlas.com/shop',
-    siteName: '3I/Atlas Collection',
+    title: 'Cosmic Shop | 3I/Atlas',
+    description: 'Explore our curated collections inspired by interstellar phenomena and cosmic energies',
+    url: getShopUrl(),
     images: [
       {
-        url: 'https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png',
+        url: getImageUrl('8a9404c9-f529-4c66-a220-f04b902f9580'),
         width: 1200,
         height: 630,
-        alt: '3I/Atlas Complete Product Collection',
+        alt: '3I/Atlas Cosmic Shop',
       },
     ],
-    locale: 'en_US',
-    type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '3I/Atlas Complete Collection | All Cosmic Products',
-    description: 'Browse our complete collection of 3I/Atlas cosmic products from all our brands.',
-    images: ['https://cdn.abacus.ai/images/8a9404c9-f529-4c66-a220-f04b902f9580.png'],
+    images: [getImageUrl('8a9404c9-f529-4c66-a220-f04b902f9580')],
   },
 }
 
 export default function ShopPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
-      <Header />
-      <FullShopPage />
-      <Footer />
-    </main>
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-pink-50">
+      {/* Shop content would go here */}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-center mb-8">Cosmic Shop</h1>
+        <p className="text-xl text-center text-gray-600 max-w-3xl mx-auto">
+          Explore our curated collections inspired by interstellar phenomena and cosmic energies
+        </p>
+      </div>
+    </div>
   )
 }

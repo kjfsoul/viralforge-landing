@@ -1,5 +1,6 @@
+"use client"
 
-'use client'
+import { getEnhancedFaqImageUrl } from "@/lib/config"
 
 import { useState, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
@@ -134,6 +135,7 @@ export default function EnhancedFAQSection() {
   }
 
   const activeCategoryData = faqCategories.find(cat => cat.id === activeCategory)
+  const ActiveCategoryIcon = activeCategoryData?.icon ?? HelpCircle
 
   return (
     <section id="faq" className="py-20 bg-gradient-to-b from-gray-900 to-black">
@@ -148,10 +150,11 @@ export default function EnhancedFAQSection() {
           <div className="flex items-center justify-center mb-6">
             <div className="relative w-20 h-20">
               <Image
-                src="https://cdn.abacus.ai/images/554503fc-f3d3-4064-a8ae-eda83a5dc1a3.png"
+                src={getEnhancedFaqImageUrl()}
                 alt="Cosmic FAQ alien probe with question marks"
                 fill
                 className="object-contain neon-glow"
+                sizes="80px"
               />
             </div>
           </div>
@@ -217,7 +220,7 @@ export default function EnhancedFAQSection() {
                     className="w-full text-left p-6 flex items-center justify-between hover:bg-gray-800/30 transition-colors"
                   >
                     <div className="flex items-center space-x-4">
-                      <activeCategoryData.icon className={`h-5 w-5 flex-shrink-0 ${
+                      <ActiveCategoryIcon className={`h-5 w-5 flex-shrink-0 ${
                         activeCategory === 'atlas' ? 'text-purple-400' :
                         activeCategory === 'products' ? 'text-cyan-400' :
                         activeCategory === 'business' ? 'text-green-400' :

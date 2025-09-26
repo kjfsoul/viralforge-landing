@@ -1,8 +1,8 @@
 
 import { Metadata } from 'next'
-import BlogSection from '@/components/blog-section'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
+import BlogSection from '@/components/blog-section'
 
 export const metadata: Metadata = {
   title: '3I/Atlas Interstellar News & Blog | Cosmic Collection',

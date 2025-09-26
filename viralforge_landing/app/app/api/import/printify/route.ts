@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { parse } from "csv-parse/sync";
+import { clearCache } from "@/lib/printify-live";
 
 // DEBUG: Log file content analysis
 console.log("=== DEBUG: File Content Analysis ===");
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
     contentType: "application/json",
     access: "public",
   });
+
+  // Bust caches for all brands so UI reflects changes immediately
+  clearCache()
 
   return NextResponse.json({ count: items.length, blob_url: url });
 }

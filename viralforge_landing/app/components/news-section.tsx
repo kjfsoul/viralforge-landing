@@ -1,118 +1,99 @@
-'use client'
+import Image from 'next/image'
+import Link from 'next/link'
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader } from "@/components/ui/card";
-import { motion, useInView } from "framer-motion";
-import { Telescope } from "lucide-react";
-import Image from "next/image";
-import { useRef } from "react";
+import type { NewsArticle } from '@/lib/news'
 
-export default function NewsSection({ products = [] }: { products?: any[] }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+interface NewsSectionProps {
+  articles: NewsArticle[]
+}
 
-  const summarize = (
-    text: string,
-    maxSentences: number = 2,
-    maxChars: number = 140
-  ) => {
-    if (!text) return "";
-    const normalized = text.replace(/\s+/g, " ").trim();
-    const sentences = normalized.split(/(?<=[.!?])\s+/);
-    let result = sentences.slice(0, maxSentences).join(" ");
-    if (result.length > maxChars) {
-      result = result.slice(0, maxChars);
-      const lastSpace = result.lastIndexOf(" ");
-      if (lastSpace > 0) result = result.slice(0, lastSpace);
-      result += "…";
-    }
-    return result;
-  };
+function limitWords(copy: string, maxWords = 20) {
+  const words = copy.replace(/\s+/g, ' ').trim().split(' ')
+  if (words.length <= maxWords) return words.join(' ')
+  return words.slice(0, maxWords).join(' ') + '…'
+}
+
+export default function NewsSection({ articles }: NewsSectionProps) {
+  const items = articles.slice(0, 3)
 
   return (
-    <section
-      id="news"
-      className="py-20 bg-gradient-to-b from-black to-gray-900"
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <div className="flex items-center justify-center space-x-2 mb-6">
-            <Telescope className="h-8 w-8 text-purple-400 cosmic-text-glow animate-pulse" />
-            <Badge className="bg-red-500 text-white animate-pulse">LIVE</Badge>
-            <span className="text-sm uppercase tracking-wider cosmic-text-glow text-cyan-400">
-              3I/Atlas Breaking News
-            </span>
-          </div>
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#080b24] via-[#060819] to-[#04040f] py-20 text-white">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-[-10%] top-24 h-72 w-72 rounded-full bg-purple-600/30 blur-3xl" />
+        <div className="absolute right-[-5%] bottom-10 h-80 w-80 rounded-full bg-cyan-500/30 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),transparent_55%)]" />
+      </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            Latest Interstellar Updates
+      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 sm:px-10 lg:px-12">
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs uppercase tracking-[0.4em] text-white/70">
+            Latest Mission Updates
+          </span>
+          <h2 className="mt-6 text-3xl font-semibold md:text-4xl">
+            Broadcasts from the 3I/Atlas Observatory
           </h2>
-
-          <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-8">
-            Real-time coverage of 3I/Atlas's historic journey through our solar
-            system, Mars flyby, and approach to perihelion.
+          <p className="mt-4 text-base text-slate-200/80 md:text-lg">
+            Fresh intel on interstellar science, mission coordination, and citizen-observation breakthroughs—sourced live whenever the news feed updates.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {products && products.length > 0 ? (
-            products.map((product: any, index: number) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-              >
-                <Card
-                  className={`bg-gray-900/50 border-gray-700 hover:border-purple-500/50 transition-all duration-300 overflow-hidden`}
-                >
-                  <div className="flex flex-col lg:flex-row">
-                    {/* Image */}
-                    <div className="lg:w-1/3">
-                      <div className="relative w-full h-40 md:h-44 lg:h-48 overflow-hidden rounded-md">
-                        <Image
-                          src={
-                            product?.images?.[0]?.url ||
-                            "/placeholder-product.jpg"
-                          }
-                          alt={product.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover"
-                        />
-                      </div>
-                    </div>
+        <div className="space-y-6">
+          {items.map((item, index) => (
+            <article
+              key={item.id}
+              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm shadow-[0_25px_60px_rgba(12,15,35,0.55)] transition hover:border-cyan-400/40"
+            >
+              <div className="grid gap-6 rounded-3xl bg-[#0b0f25]/80 p-5 sm:grid-cols-[160px_minmax(0,1fr)] sm:p-6">
+                <div className="relative hidden aspect-[4/5] overflow-hidden rounded-2xl sm:block">
+                  <Image
+                    src={item.image_url || '/placeholder-product.jpg'}
+                    alt={item.title}
+                    fill
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70" />
+                  <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">
+                    {new Date(item.published_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
 
-                    {/* Content */}
-                    <div className="lg:w-2/3 p-6">
-                      <CardHeader className="p-0 mb-4">
-                        <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">
-                          {product.title}
-                        </h3>
-                        <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
-                          {summarize(product.description, 2, 140)}
-                        </p>
-                      </CardHeader>
-                    </div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-200">
+                      {item.source || 'Mission Control'}
+                    </span>
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">
+                      {new Date(item.published_at).toLocaleDateString()}
+                    </span>
                   </div>
-                </Card>
-              </motion.div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-400 text-lg">
-                No news items available at the moment.
-              </p>
-            </div>
-          )}
+
+                  <h3 className="text-xl font-semibold leading-snug text-white transition group-hover:text-cyan-200 md:text-2xl">
+                    {item.title}
+                  </h3>
+
+                  <p className="max-w-2xl text-sm text-slate-200/80 md:text-base">
+                    {limitWords(item.summary || '', 20)}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                    <Link
+                      href={item.url || '#'}
+                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-400 px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(167,139,250,0.35)] transition hover:scale-[1.02]"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Read dispatch
+                    </Link>
+                    <span className="text-xs uppercase tracking-[0.4em] text-white/30">
+                      Synced {index === 0 ? 'just now' : 'recently'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
-  );
+  )
 }
