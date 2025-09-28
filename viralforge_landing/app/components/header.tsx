@@ -53,7 +53,7 @@ export function Header() {
               FAQ
             </button>
             <Button 
-              onClick={() => window.open('/shop', '_self')}
+              onClick={() => scrollToSection('atlas-grid')}
               className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white px-6 py-2 rounded-full hover-neon"
             >
               Shop Now
@@ -86,7 +86,7 @@ export function Header() {
                 FAQ
               </button>
               <Button 
-                onClick={() => window.open('/shop', '_self')}
+                onClick={() => scrollToSection('atlas-grid')}
                 className="bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 text-white rounded-full hover-neon w-full"
               >
                 Shop Now

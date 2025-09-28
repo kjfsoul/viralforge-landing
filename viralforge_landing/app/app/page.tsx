@@ -21,7 +21,7 @@ export default async function Home({ searchParams }: { searchParams?: { live?: s
   const atlasGrid = atlasAll.slice(0, 12)
 
   const brandProducts: Record<BrandKeys, NormalizedProduct[]> = {
-    '3iAtlas': atlasAll.slice(atlasFeaturedCount, atlasFeaturedCount + 3),
+    '3iAtlas': atlasAll.slice(0, 3),
     'Mystic Arcana': mysticAll.slice(0, 3),
     'EDM Shuffle': edmAll.slice(0, 3),
     'BirthdayGen': birthdayAll.slice(0, 3),

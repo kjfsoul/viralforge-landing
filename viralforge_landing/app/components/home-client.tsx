@@ -15,6 +15,7 @@ import OracleReading from '@/components/oracle-reading'
 import OracleProductWidget from '@/components/oracle-product-widget'
 import EnhancedFAQSection from '@/components/enhanced-faq-section'
 import CTASection from '@/components/cta-section'
+import StrategicProductPlacements from '@/components/strategic-product-placements'
 import { ORACLE_CARDS, type OracleCard } from '@/lib/oracle-cards'
 import { getHeroImageUrl, getOracleImageUrls } from '@/lib/config'
 import type { NormalizedProduct } from '@/lib/printify-live'
@@ -164,11 +165,32 @@ export default function HomeClient({ atlasFeatured, atlasRemainderCount, brandPr
   const legacyProducts = useMemo(() => allSummaries.map(mapNormalizedToProduct), [allSummaries])
 
   const heroProducts = useMemo(() => atlasFeatured.map(mapNormalizedToProduct), [atlasFeatured])
+const oracleProducts = useMemo(
+  () => legacyProducts.filter(product => product.brand === 'Mystic Arcana' || product.brand === '3I/Atlas').slice(0, 2),
+  [legacyProducts]
+)
 
-  const oracleProducts = useMemo(
-    () => legacyProducts.filter(product => product.brand === 'Mystic Arcana' || product.brand === '3I/Atlas').slice(0, 2),
-    [legacyProducts]
-  )
+const strategicProducts = useMemo(() => {
+  // Get a mix of products from all brands for strategic placements
+  const strategicSelection: NormalizedProduct[] = []
+  
+  // Add 1-2 featured products from each brand
+  Object.entries(brandProducts).forEach(([brand, products]) => {
+    const featured = products.filter(p => p.tags?.includes('featured')).slice(0, 2)
+    if (featured.length === 0) {
+      // If no featured products, take the first 1-2 products
+      strategicSelection.push(...products.slice(0, Math.min(2, products.length)))
+    } else {
+      strategicSelection.push(...featured)
+    }
+  })
+  
+  // Add some additional products from the atlas grid for variety
+  const atlasExtras = atlasGrid.filter(p => !strategicSelection.find(sp => sp.id === p.id)).slice(0, 3)
+  strategicSelection.push(...atlasExtras)
+  
+  return strategicSelection.slice(0, 6) // Limit to 6 products for strategic placement
+}, [brandProducts, atlasGrid])
 
   const resolveOracleCard = useCallback((card: OracleCard): OracleCard => ({
     ...card,
@@ -268,6 +290,19 @@ export default function HomeClient({ atlasFeatured, atlasRemainderCount, brandPr
         )}
         <BrandSection initial={brandProducts} />
         <AtlasTrajectorySimulator />
+        {strategicProducts.length > 0 && (
+          <StrategicProductPlacements
+            title="Featured Collection"
+            description="Discover our handpicked selection of premium products from across all brands"
+            products={strategicProducts.map(p => ({
+              id: p.id,
+              name: p.title,
+              description: p.short_description || p.description,
+              price: p.default_price_cents || p.price_min_cents || 0,
+              imageUrl: p.first_image_url || p.images?.[0]?.url || ''
+            }))}
+          />
+        )}
         <section id="oracle" className="py-16 bg-gradient-to-br from-purple-900/10 via-black/5 to-indigo-900/10">
           <OracleSection
             title="3I/Atlas Oracle Deck"
@@ -309,6 +344,19 @@ export default function HomeClient({ atlasFeatured, atlasRemainderCount, brandPr
             <EnhancedFAQSection />
           </div>
         </section>
+        {strategicProducts.length > 0 && (
+          <StrategicProductPlacements
+            title="Complete Your Collection"
+            description="Explore more products that complement your journey through the cosmos"
+            products={strategicProducts.slice(0, 3).map(p => ({
+              id: p.id,
+              name: p.title,
+              description: p.short_description || p.description,
+              price: p.default_price_cents || p.price_min_cents || 0,
+              imageUrl: p.first_image_url || p.images?.[0]?.url || ''
+            }))}
+          />
+        )}
         <CTASection />
       </main>
       <Footer />

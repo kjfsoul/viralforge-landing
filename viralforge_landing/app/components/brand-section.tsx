@@ -36,7 +36,7 @@ const brands = [
     name: '3iAtlas',
     subtitle: 'Featured Interstellar Store',
     description: 'The flagship brand. Live interstellar-inspired merch and collectibles from the 3iAtlas store.',
-    image: '/images/brand-3iatlas.jpg',
+    image: '/images/thirdeye.png',
     icon: Star,
     color: 'from-blue-500 to-purple-500',
     hoverColor: 'hover:shadow-blue-500/25',
@@ -70,7 +70,7 @@ const brands = [
     name: 'EDM Shuffle',
     subtitle: 'Digital Rave Experience',
     description: 'Electronic dance music platform delivering cosmic beats and futuristic vibes. Experience the rhythm of the universe with 3I/Atlas-inspired soundscapes and neon aesthetics.',
-    image: '/images/brand-edmshuffle.jpg',
+    image: '/images/EDM_Shuffle_Logo.png',
     icon: Music,
     color: 'from-cyan-500 to-blue-500',
     hoverColor: 'hover:shadow-cyan-500/25',
@@ -87,7 +87,7 @@ const brands = [
     name: 'BirthdayGen',
     subtitle: 'Automated Celebrations',
     description: 'Revolutionary card creation and party planning platform. Make every birthday magical with AI-powered personalization and now featuring cosmic 3I/Atlas celebration themes.',
-    image: '/images/brand-birthdaygen.jpg',
+    image: '/images/birthday-gen-logo.png',
     icon: Gift,
     color: 'from-pink-500 to-yellow-500',
     hoverColor: 'hover:shadow-pink-500/25',
@@ -274,41 +274,43 @@ export default function BrandSection({ initial }: BrandSectionProps) {
                     ))}
                   </div>
 
-                  {/* Website and Social Links */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      onClick={() => window.open(brand.website, "_blank", "noopener,noreferrer")}
-                      className={`bg-gradient-to-r ${brand.color} hover:opacity-90 text-white rounded-full group flex-1`}
-                    >
-                      <ExternalLink className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
-                      Visit Website
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        window.open(brand.social.instagram, "_blank", "noopener,noreferrer")
-                      }
-                      variant="outline"
-                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                    >
-                      <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                    </Button>
-                    <Button
-                      onClick={() => window.open(brand.social.tiktok, "_blank", "noopener,noreferrer")}
-                      variant="outline"
-                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                    >
-                      <Music className="h-4 w-4 group-hover:animate-bounce transition-transform" />
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        window.open(brand.social.twitter, "_blank", "noopener,noreferrer")
-                      }
-                      variant="outline"
-                      className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
-                    >
-                      <Twitter className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                    </Button>
-                  </div>
+                 {/* Website and Social Links */}
+                 <div className="flex flex-col sm:flex-row gap-3">
+                   {brand.name !== '3iAtlas' && (
+                     <Button
+                       onClick={() => window.open(brand.website, "_blank", "noopener,noreferrer")}
+                       className={`bg-gradient-to-r ${brand.color} hover:opacity-90 text-white rounded-full group flex-1`}
+                     >
+                       <ExternalLink className="mr-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+                       Visit Website
+                     </Button>
+                   )}
+                   <Button
+                     onClick={() =>
+                       window.open(brand.social.instagram, "_blank", "noopener,noreferrer")
+                     }
+                     variant="outline"
+                     className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                   >
+                     <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                   </Button>
+                   <Button
+                     onClick={() => window.open(brand.social.tiktok, "_blank", "noopener,noreferrer")}
+                     variant="outline"
+                     className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                   >
+                     <Music className="h-4 w-4 group-hover:animate-bounce transition-transform" />
+                   </Button>
+                   <Button
+                     onClick={() =>
+                       window.open(brand.social.twitter, "_blank", "noopener,noreferrer")
+                     }
+                     variant="outline"
+                     className={`border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group`}
+                   >
+                     <Twitter className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                   </Button>
+                 </div>
                 </div>
               </div>
 
