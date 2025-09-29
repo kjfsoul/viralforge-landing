@@ -17,7 +17,7 @@ export default defineConfig({
     video: 'retain-on-failure'
   },
   webServer: {
-    command: process.env.PLAYWRIGHT_WEB_COMMAND || 'pnpm dev',
+    command: process.env.PLAYWRIGHT_WEB_COMMAND || 'yarn dev',
     url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000

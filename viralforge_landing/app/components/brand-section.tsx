@@ -1,27 +1,21 @@
 "use client"
 
-import PrintifyProductCard from "@/components/printify-product-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { NormalizedProduct } from "@/lib/printify-live";
 import { motion, useInView } from "framer-motion";
 import {
   ExternalLink,
   Gift,
-  Instagram,
   Music,
   Sparkles,
   Star,
-  Twitter,
 } from "lucide-react";
 import Image from "next/image";
 import { useRef } from "react";
+import SocialLinks from "./SocialLinks";
+import FeaturedProductsRow from "./FeaturedProductsRow";
 
-type BrandSectionProps = {
-  initial?: {
-    [key: string]: NormalizedProduct[] | undefined
-  }
-}
+type BrandSectionProps = {}
 
 const BRAND_VIEW_LINKS: Record<string, string> = {
   "3iAtlas": "https://3iatlas.printify.me/",
@@ -41,15 +35,12 @@ const brands = [
     hoverColor: "hover:shadow-blue-500/25",
     borderColor: "border-blue-500",
     website: BRAND_VIEW_LINKS["3iAtlas"],
-    social: {
-      instagram: "#",
-      tiktok: "#",
-      twitter: "#",
-    },
+    social: null,
     features: [],
   },
   {
     name: "Mystic Arcana",
+    brandKey: "mysticArcana",
     subtitle: "Cosmic Tarot & Astrology",
     description: "",
     image: "/images/Mystic Arcana_updated Logo.png",
@@ -67,6 +58,7 @@ const brands = [
   },
   {
     name: "EDM Shuffle",
+    brandKey: "edmShuffle",
     subtitle: "Digital Rave Experience",
     description: "",
     image: "/images/EDM_Shuffle_Logo.png",
@@ -84,6 +76,7 @@ const brands = [
   },
   {
     name: "BirthdayGen",
+    brandKey: "birthdayGen",
     subtitle: "Automated Celebrations",
     description: "",
     image: "/images/birthday-gen-logo.png",
@@ -101,72 +94,7 @@ const brands = [
   },
 ];
 
-function BrandInlineProducts({
-  brand,
-  initialProducts,
-}: {
-  brand: string;
-  initialProducts?: NormalizedProduct[];
-}) {
-  const products = (initialProducts || []).slice(0, 3);
-  const shopUrl = BRAND_VIEW_LINKS[brand] || "#";
-  const needsCta = (initialProducts?.length ?? 0) < 3;
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-      {products.map((p) => (
-        <PrintifyProductCard
-          key={p.id}
-          product={{
-            id: p.id,
-            title: p.title,
-            description: p.short_description || p.description,
-            brand: brand,
-            category: p.tags?.[0] ?? brand,
-            price: p.price_min_cents || p.default_price_cents || 0,
-            images: p.images,
-            printify_url: p.storefront_product_url || p.printify_url || shopUrl,
-            status: p.status || "Available",
-            urgent: p.urgent || false,
-            featured: p.featured || true,
-            tags: p.tags,
-            price_min: p.price_min_cents || null,
-            price_max: p.price_max || null,
-            storefront_product_url:
-              p.storefront_product_url || p.printify_url || shopUrl,
-          }}
-          variant="featured"
-        />
-      ))}
-
-      {(needsCta || products.length === 0) && (
-        <Card className="bg-gray-900/60 border-dashed border-2 border-purple-500/40 flex flex-col justify-between">
-          <CardContent className="p-6 text-center space-y-4">
-            <h4 className="text-lg font-semibold text-white">
-              View full {brand} shop
-            </h4>
-            <p className="text-sm text-gray-300">
-              {products.length
-                ? "Explore the rest of the live catalog."
-                : "The latest products are syncing. Tap below to browse the full shop."}
-            </p>
-            <Button
-              variant="outline"
-              className="border-purple-400 text-purple-200 hover:border-purple-200 hover:text-white"
-              onClick={() =>
-                window.open(shopUrl, "_blank", "noopener,noreferrer")
-              }
-            >
-              Visit Shop
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-export default function BrandSection({ initial }: BrandSectionProps) {
+export default function BrandSection({}: BrandSectionProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   return (
@@ -277,56 +205,13 @@ export default function BrandSection({ initial }: BrandSectionProps) {
                       </div>
 
                       {/* Social Media Icons */}
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={() =>
-                            window.open(
-                              brand.social.instagram,
-                              "_blank",
-                              "noopener,noreferrer"
-                            )
-                          }
-                          variant="outline"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group"
-                        >
-                          <Instagram className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            window.open(
-                              brand.social.tiktok,
-                              "_blank",
-                              "noopener,noreferrer"
-                            )
-                          }
-                          variant="outline"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group"
-                        >
-                          <Music className="h-4 w-4 group-hover:animate-bounce transition-transform" />
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            window.open(
-                              brand.social.twitter,
-                              "_blank",
-                              "noopener,noreferrer"
-                            )
-                          }
-                          variant="outline"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full group"
-                        >
-                          <Twitter className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                        </Button>
-                      </div>
+                      {brand.brandKey && <SocialLinks brand={brand.brandKey as any} />}
                     </div>
                   </div>
                 </div>
 
                 {/* Row 2: Exactly 3 products beneath, in 3 columns */}
-                <BrandInlineProducts
-                  brand={brand.name}
-                  initialProducts={initial?.[brand.name]}
-                />
+                <FeaturedProductsRow storeBase={brand.website} />
               </motion.div>
             );
           })}

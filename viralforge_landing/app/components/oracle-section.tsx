@@ -15,19 +15,22 @@ interface OracleSectionProps {
     description: string
   }>
   onCardSelect?: (card: any) => void
+  isGated?: boolean
 }
 
 export default function OracleSection({
   title,
   description,
   cards,
-  onCardSelect
+  onCardSelect,
+  isGated
 }: OracleSectionProps) {
   const oracleImages = getOracleImageUrls()
   const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set())
   const [showAll, setShowAll] = useState(false)
 
   const toggleCard = (id: number) => {
+    if (isGated) return;
     const newSet = new Set(revealedCards)
     if (newSet.has(id)) {
       newSet.delete(id)
@@ -38,6 +41,7 @@ export default function OracleSection({
   }
 
   const toggleShowAll = () => {
+    if (isGated) return;
     setShowAll(!showAll)
     if (!showAll) {
       const allIds = new Set(cards.map(card => card.id))
@@ -100,7 +104,8 @@ export default function OracleSection({
           {/* Toggle all cards button */}
           <motion.button
             onClick={toggleShowAll}
-            className="mt-6 flex items-center justify-center mx-auto gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+            disabled={isGated}
+            className="mt-6 flex items-center justify-center mx-auto gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -118,9 +123,9 @@ export default function OracleSection({
             return (
               <motion.div
                 key={card.id}
-                className="relative aspect-[3/4] cursor-pointer group"
-                whileHover={{ y: -10 }}
-                whileTap={{ scale: 0.95 }}
+                className={`relative aspect-[3/4] group ${isGated ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                whileHover={!isGated ? { y: -10 } : {}}
+                whileTap={!isGated ? { scale: 0.95 } : {}}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.05 }}
@@ -155,10 +160,13 @@ export default function OracleSection({
                       {/* Select button overlay */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
-                          className="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg"
+                          disabled={isGated}
+                          className="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={(e) => {
                             e.stopPropagation()
-                            onCardSelect?.(card)
+                            if (!isGated) {
+                                onCardSelect?.(card)
+                            }
                           }}
                         >
                           Select
@@ -188,7 +196,7 @@ export default function OracleSection({
                       
                       {/* Hint text */}
                       <div className="absolute bottom-2 left-0 right-0 text-center">
-                        <span className="text-xs text-purple-300/70">Tap to reveal</span>
+                        <span className="text-xs text-purple-300/70">{isGated ? 'Complete survey to reveal' : 'Tap to reveal'}</span>
                       </div>
                     </motion.div>
                   )}
@@ -214,7 +222,7 @@ export default function OracleSection({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <p>Tap on any card to reveal its meaning. Select a card to incorporate its energy into your journey with 3I/Atlas.</p>
+          <p>{isGated ? 'First, complete the attunement survey to unlock the Oracle deck.' : 'Tap on any card to reveal its meaning. Select a card to incorporate its energy into your journey with 3I/Atlas.'}</p>
         </motion.div>
       </div>
     </div>
