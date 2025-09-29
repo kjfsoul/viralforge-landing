@@ -72,38 +72,36 @@ async function getProductsForBrand(brand: BrandName): Promise<PrintifyProduct[]>
   try {
     const service = getPrintifyProductService()
     
-    // Get all shops first
-    const shops: PrintifyShop[] = await service.getShops()
+    // Map brand names to shop IDs from environment variables
+    const brandToShopId: Record<BrandName, string> = {
+      '3iAtlas': process.env.PRINTIFY_SHOP_ID_3IATLAS || '',
+      'Mystic Arcana': process.env.PRINTIFY_SHOP_ID_MYSTIC_ARCANA || '',
+      'EDM Shuffle': process.env.PRINTIFY_SHOP_ID_EDM_SHUFFLE || '',
+      'BirthdayGen': process.env.PRINTIFY_SHOP_ID_BIRTHDAYGEN || ''
+    }
     
-    // Collect products from all shops for this brand
-    const allProducts: PrintifyProduct[] = []
+    const shopId = brandToShopId[brand]
+    console.log(`Fetching products for brand: ${brand}, shopId: ${shopId}`)
     
-    for (const shop of shops) {
-      try {
-        const products = await service.getProducts(shop.id)
-        
-        // Ensure products is an array
-        if (!Array.isArray(products)) {
-          console.error(`Products is not an array for shop ${shop.id}:`, typeof products, products)
-          continue
-        }
-        
-        // Filter products by brand (assuming brand is in title or tags)
-        const brandProducts = products.filter(product =>
-          product.title.toLowerCase().includes(brand.toLowerCase()) ||
-          product.tags?.some(tag => tag.toLowerCase().includes(brand.toLowerCase()))
-        )
-        allProducts.push(...brandProducts)
-      } catch (error) {
-        console.error(`Error fetching products for shop ${shop.id}:`, error)
-      }
+    if (!shopId) {
+      throw new Error(`No shop ID configured for brand: ${brand}`)
+    }
+    
+    // Get products from the specific shop for this brand
+    const products = await service.getProducts(shopId)
+    console.log(`Retrieved ${products?.length || 0} products for brand ${brand}`)
+    
+    // Ensure products is an array
+    if (!Array.isArray(products)) {
+      console.error(`Products is not an array for shop ${shopId}:`, typeof products, products)
+      return []
     }
 
     // Update cache
-    brandCache.set(brand, allProducts)
+    brandCache.set(brand, products)
     lastCacheUpdate.set(brand, Date.now())
     
-    return allProducts
+    return products
   } catch (error) {
     console.error(`Error fetching products for brand ${brand}:`, error)
     throw new Error(`Failed to fetch products for brand ${brand}: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -124,23 +122,27 @@ export async function getAllProductsForBrand(
   const { limit = 3, page = 1, live = false } = options
   
   try {
-    const products = await getProductsForBrand(brand)
-    
+    const products = await getProductsForBrand(brand);
+
     // Apply live filter if specified - check if any variant is visible
     const filteredProducts = live
-      ? products.filter(product => product.visible !== false && product.variants?.some(variant => variant.options.length > 0))
-      : products
-    
+      ? products.filter(
+          (product) =>
+            product.visible !== false &&
+            product.variants?.some((variant) => variant.options.length > 0)
+        )
+      : products;
+
     // Apply pagination and convert to NormalizedProduct
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
-    
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
     // Convert PrintifyProduct to NormalizedProduct
-    return paginatedProducts.map(product => normalizeProduct(product, brand))
+    return paginatedProducts.map((product) => normalizeProduct(product, brand));
   } catch (error) {
-    console.error(`Error getting all products for brand ${brand}:`, error)
-    throw error
+    console.error(`Error getting all products for brand ${brand}:`, error);
+    return [];
   }
 }
 
@@ -180,15 +182,19 @@ export async function getProductByIdFromAnyShop(productId: string): Promise<Norm
  * Convert PrintifyProduct to NormalizedProduct for components
  */
 export function normalizeProduct(product: PrintifyProduct, brand: string = 'Unknown'): NormalizedProduct {
-  // Extract price information - using placeholder since PrintifyVariant doesn't have price
+  // Extract price information from variants
   const variants = product.variants || []
   
-  // Calculate price in cents - using placeholder values
-  const priceMinCents = 1000 // Default placeholder price
-  const priceMaxCents = variants.length > 1 ? 2000 : priceMinCents
+  // Calculate actual prices from variants
+  const prices = variants.map(v => v.price).filter((p): p is number => p !== undefined && p > 0)
+  const priceMinCents = prices.length > 0 ? Math.min(...prices) : 0
+  const priceMaxCents = prices.length > 0 ? Math.max(...prices) : 0
   
   // Get first image URL
   const firstImage = product.images?.[0]?.url || ''
+  
+  // Get storefront URL from external data
+  const storefrontUrl = product.external?.handle || ''
   
   return {
     id: product.id,
@@ -198,14 +204,14 @@ export function normalizeProduct(product: PrintifyProduct, brand: string = 'Unkn
     category: product.tags?.[0] || brand,
     price: priceMinCents,
     images: product.images || [],
-    printify_url: '#', // Will be updated with storefront URL when available
-    status: 'Available',
+    printify_url: storefrontUrl,
+    status: product.visible ? 'Available' : 'Unavailable',
     urgent: false,
-    featured: false,
+    featured: true,
     tags: product.tags || [],
     price_min: priceMinCents,
     price_max: priceMaxCents,
-    storefront_product_url: '', // Will be populated by API
+    storefront_product_url: storefrontUrl,
     short_description: product.description?.substring(0, 100) || '',
     // Additional properties for component compatibility
     price_min_cents: priceMinCents,

@@ -195,6 +195,9 @@ export default function AtlasTrajectorySimulator() {
     return Math.round(scaled)
   }, [snapshot, outgassingScale])
 
+  // Debug logging to validate JSX structure
+  console.log('AtlasTrajectorySimulator: Component rendering, checking JSX structure...')
+
   return (
     <section ref={sectionRef} className="relative overflow-hidden bg-gradient-to-b from-black via-[#050414] to-[#04040f] py-20 text-white">
       <div className="absolute inset-0 -z-10 opacity-60">
@@ -446,7 +449,7 @@ export default function AtlasTrajectorySimulator() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <aside className="space-y-5">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">

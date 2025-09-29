@@ -288,7 +288,10 @@ export class PrintifyProductService {
    */
   async getProducts(shopId: string): Promise<PrintifyProduct[]> {
     try {
-      return await this.client.getProducts(shopId);
+      console.log(`Fetching products for shop: ${shopId}`);
+      const products = await this.client.getProducts(shopId);
+      console.log(`Retrieved ${products?.length || 0} products from shop ${shopId}`);
+      return products;
     } catch (error) {
       console.error('Error fetching products:', error);
       throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : 'Unknown error'}`);

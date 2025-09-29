@@ -1,6 +1,9 @@
 import HomeClient from '@/components/home-client'
-import { getAllProductsForBrand, type NormalizedProduct } from '@/lib/printify-live'
-import { getLatestNews } from '@/lib/news'
+import { getLatestNews } from "@/lib/news";
+import {
+  getAllProductsForBrand,
+  type NormalizedProduct,
+} from "@/lib/printify-live";
 
 type BrandKeys = '3iAtlas' | 'Mystic Arcana' | 'EDM Shuffle' | 'BirthdayGen'
 
@@ -26,6 +29,7 @@ export default async function Home({ searchParams }: { searchParams?: { live?: s
     'EDM Shuffle': edmAll.slice(0, 3),
     'BirthdayGen': birthdayAll.slice(0, 3),
   }
+
 
   return (
     <HomeClient

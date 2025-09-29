@@ -6,7 +6,7 @@
     "published_at": "2025-09-20T12:00:00Z",
     "image_url": "https://images-assets.nasa.gov/image/PIA25000/PIA25000~orig.jpg",
     "source": "NASA",
-    "url": "https://www.nasa.gov" 
+    "url": "https://www.nasa.gov"
   },
   {
     "id": "esa-solar-orbiter-data",
@@ -25,5 +25,32 @@
     "image_url": "https://cdn.spaceflightnewsapi.net/images/placeholder.jpg",
     "source": "Atlas Watch",
     "url": "https://www.space.com"
+  },
+  {
+    "id": "jpl-3i-atlas-trajectory",
+    "title": "JPL Confirms 3I/Atlas Trajectory Predictions",
+    "summary": "Jet Propulsion Laboratory's latest calculations show 3I/Atlas maintaining its predicted course through the inner solar system with unprecedented accuracy.",
+    "published_at": "2025-09-15T14:20:00Z",
+    "image_url": "https://www.jpl.nasa.gov/images/asteroid/2024/asteroid-2024-09-15.jpg",
+    "source": "JPL",
+    "url": "https://www.jpl.nasa.gov"
+  },
+  {
+    "id": "hubble-3i-atlas-spectra",
+    "title": "Hubble Space Telescope Analyzes 3I/Atlas Chemical Composition",
+    "summary": "Advanced spectroscopic analysis reveals complex organic molecules in 3I/Atlas coma, suggesting potential for prebiotic chemistry in interstellar space.",
+    "published_at": "2025-09-12T09:15:00Z",
+    "image_url": "https://hubblesite.org/files/live/sites/hubble/files/home/science/2024/09/hubble-3i-atlas-spectra.jpg",
+    "source": "Hubble Space Telescope",
+    "url": "https://hubblesite.org"
+  },
+  {
+    "id": "international-3i-atlas-collaboration",
+    "title": "International Space Agencies Unite for 3I/Atlas Mission",
+    "summary": "NASA, ESA, JAXA, and CNSA announce unprecedented collaboration to study 3I/Atlas, pooling resources for comprehensive interstellar object analysis.",
+    "published_at": "2025-09-10T16:45:00Z",
+    "image_url": "https://www.nasa.gov/sites/default/files/thumbnails/image/3i-atlas-collaboration-2024.jpg",
+    "source": "International Space Coalition",
+    "url": "https://www.nasa.gov"
   }
 ]

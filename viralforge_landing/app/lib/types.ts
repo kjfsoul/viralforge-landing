@@ -80,12 +80,23 @@ export interface PrintifyProduct {
   visible?: boolean
   tags?: string[]
   updated_at?: string
+  external?: {
+    id: string
+    handle: string
+    url?: string
+  }
 }
 
 export interface PrintifyVariant {
   id: string
   title: string
   options: string[]
+  price?: number
+  cost?: number
+  is_enabled?: boolean
+  is_default?: boolean
+  is_available?: boolean
+  quantity?: number
 }
 
 export interface ApiResponse<T> {
