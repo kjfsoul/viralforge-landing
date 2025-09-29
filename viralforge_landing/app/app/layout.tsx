@@ -73,6 +73,22 @@ export default function RootLayout({
         <meta name="theme-color" content="#6366f1" />
         <meta name="msapplication-TileColor" content="#6366f1" />
         <link rel="preconnect" href={config.imageCdn.baseUrl} />
+        <meta httpEquiv="Content-Security-Policy" content="default-src 'self' vercel.com *.vercel.com vercel.live *.vercel-preview.app data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' vercel.com *.vercel.com vercel.live *.vercel-preview.app; style-src 'self' 'unsafe-inline' vercel.com *.vercel.com vercel.live *.vercel-preview.app fonts.googleapis.com; img-src 'self' data: https: vercel.com *.vercel.com vercel.live *.vercel-preview.app; font-src 'self' fonts.gstatic.com vercel.com *.vercel.com; connect-src 'self' vercel.com *.vercel.com vercel.live *.vercel-preview.app;" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Handle custom element registration conflicts
+              const originalDefine = window.customElements.define;
+              window.customElements.define = function(name, constructor, options) {
+                if (window.customElements.get(name)) {
+                  console.warn('Custom element "' + name + '" already defined, skipping registration');
+                  return;
+                }
+                return originalDefine.call(this, name, constructor, options);
+              };
+            `
+          }}
+        />
       </head>
       <body className="font-sans antialiased">
         {children}
