@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextResponse } from "next/server"
 import { selectOracleCardFromSurvey } from "@/lib/oracle-select"
 import { generateAdvancedPersonalizedMessage } from "@/lib/oracle-cards" // you already have this
