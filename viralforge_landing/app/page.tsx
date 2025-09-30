@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import HomeClient from '@/components/home-client'
 import { getLatestNews } from "@/lib/news";
 import {

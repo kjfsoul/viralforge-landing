@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server"
-import { selectOracleCardFromSurvey } from "@/lib/oracle-select"
-import { generateAdvancedPersonalizedMessage } from "@/lib/oracle-cards" // you already have this
+import { selectOracleCardFromSurvey } from "../../lib/oracle-select"
+import { generateAdvancedPersonalizedMessage } from "../../lib/oracle-cards" // you already have this
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({} as any))

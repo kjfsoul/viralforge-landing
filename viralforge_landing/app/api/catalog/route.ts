@@ -1,6 +1,5 @@
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-export const runtime = "edge";
 
 export async function GET() {
   const url = process.env.CATALOG_BLOB_URL;

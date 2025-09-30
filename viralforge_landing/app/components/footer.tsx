@@ -148,7 +148,7 @@ export default function Footer() {
           {/* Mystic Arcana */}
           <BrandSection
             brandName="Mystic Arcana"
-            logoPath="/images/Mystic Arcana_updated Logo.png"
+            logoPath="/images/mystic-arcana-logo.png"
             shopUrl="https://mystic-arcana-pop-up.printify.me/"
             brandKey="Mystic Arcana"
           />
@@ -156,7 +156,7 @@ export default function Footer() {
           {/* EDM Shuffle */}
           <BrandSection
             brandName="EDM Shuffle"
-            logoPath="/images/EDM_Shuffle_Logo.png"
+            logoPath="/images/edm-shuffle-logo.png"
             shopUrl="https://edm-shuffle-pop-up.printify.me/"
             brandKey="EDM Shuffle"
           />
@@ -164,7 +164,7 @@ export default function Footer() {
           {/* BirthdayGen */}
           <BrandSection
             brandName="BirthdayGen"
-            logoPath="/images/birthday-gen-logo.png"
+            logoPath="/images/birthdaygen-logo.png"
             shopUrl="https://birthdaygen-popup.printify.me/"
             brandKey="BirthdayGen"
           />

@@ -1,6 +1,6 @@
 import 'server-only'
 
-import fallback from '@/data/news-fallback.json'
+import fallback from '../data/news-fallback.json'
 
 export type NewsArticle = {
   id: string

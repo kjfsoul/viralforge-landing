@@ -1,4 +1,4 @@
-import PrintifyAdminPanel from '@/components/printify-admin-panel';
+import PrintifyAdminPanel from '../../components/printify-admin-panel';
 
 export default function PrintifyAdminPage() {
   return (
